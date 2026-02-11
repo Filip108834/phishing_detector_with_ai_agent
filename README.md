@@ -203,7 +203,7 @@ Szczegóły znajdują się w pliku `LICENSE`.
 
 ---
 
-## 📘 Kontekst pracy dyplomowej
+## Kontekst pracy dyplomowej
 
 Repozytorium zawiera część implementacyjną pracy inżynierskiej.
 Podstawy teoretyczne, metodologia badań oraz analiza wyników zostały opisane w pracy pisemnej.
