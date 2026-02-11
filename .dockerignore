@@ -1,0 +1,13 @@
+__pycache__/
+.venv/
+venv/
+.ipynb_checkpoints/
+data/raw/
+data/tmp/
+data/generated/
+models/
+*.db
+*.sqlite3
+*.log
+.env
+.vscode/
