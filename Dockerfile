@@ -24,4 +24,4 @@ COPY . .
 EXPOSE 8000
 
 #TBD
-CMD ["python", "-m", "agent.main"]
+CMD ["uvicorn", "agent.main:app", "--host", "0.0.0.0", "--port", "8000"]

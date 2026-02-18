@@ -1,30 +1,21 @@
 services:
-  # --- SMTP testowy (przechwytuje maile, NIE wysyła w internet) ---
   mailhog:
     image: mailhog/mailhog:latest
     container_name: mailhog
-    # dostęp tylko lokalnie na Twoim Windowsie:
     ports:
-      - "127.0.0.1:8025:8025"   # UI MailHog
-      - "127.0.0.1:1025:1025"   # SMTP
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
     networks:
       - lab_internal
     restart: unless-stopped
 
-  # --- Gophish (symulacja kampanii) ---
   gophish:
-    # opcja A: oficjalna nazwa obrazu z Docker Hub
     image: gophish/gophish:latest
-    # opcja B (często używana/utrzymywana): cisagov/gophish-docker
-    # image: cisagov/gophish-docker:latest
     container_name: gophish
-    # Dostęp tylko lokalnie (ważne!):
     ports:
-      - "127.0.0.1:3333:3333"   # panel admin
-      - "127.0.0.1:8080:8080"   # serwer phishing (landing)
+      - "127.0.0.1:3333:3333"
+      - "127.0.0.1:8080:8080"
     environment:
-      # Gophish w kampanii będzie wysyłał przez mailhog:
-      # (konkretnie ustawisz to w UI Gophish w "Sending Profiles")
       - TZ=Europe/Warsaw
     networks:
       - lab_internal
@@ -32,7 +23,6 @@ services:
       - mailhog
     restart: unless-stopped
 
-  # --- Baza danych (wyniki predykcji, logi eksperymentów) ---
   db:
     image: postgres:16
     container_name: thesis_db
@@ -40,49 +30,54 @@ services:
       POSTGRES_USER: thesis
       POSTGRES_PASSWORD: thesis
       POSTGRES_DB: phishing_lab
-    # NIE wystawiamy portu na hosta (bezpieczniej).
-    # Jeśli kiedyś potrzebujesz debugować DB z hosta, dodaj:
-    # ports:
-    #   - "127.0.0.1:5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
       - db_internal
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thesis -d phishing_lab || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
 
-  # --- Agent AI (Twoja aplikacja) ---
   ai-agent:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: ai_agent
     environment:
-      # Konfiguracja DB (agent łączy się po nazwie usługi 'db')
       DATABASE_URL: postgresql+psycopg2://thesis:thesis@db:5432/phishing_lab
-      # (Opcjonalnie) mailhog SMTP, jeśli agent ma coś wysyłać
       SMTP_HOST: mailhog
       SMTP_PORT: 1025
       TZ: Europe/Warsaw
-    # Jeśli agent wystawia API – udostępnij lokalnie:
     ports:
       - "127.0.0.1:8000:8000"
     networks:
       - lab_internal
       - db_internal
     depends_on:
-      - db
-      - mailhog
-      - gophish
+      db:
+        condition: service_healthy
+      mailhog:
+        # narzędzia nie zawsze mają curl/wget/nc do sensownego hc
+        condition: service_started
+      gophish:
+        condition: service_started
     restart: unless-stopped
+    healthcheck:
+      # bez curl/requests: używamy urllib w pythonie
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
 networks:
-  # Sieć “lab” – komunikacja Gophish <-> MailHog <-> Agent
-  # internal:true ogranicza ruch na zewnątrz (bezpieczniej w labie). :contentReference[oaicite:3]{index=3}
   lab_internal:
     driver: bridge
     internal: true
-
-  # Oddzielna sieć dla DB – tylko agent ma do niej dostęp
   db_internal:
     driver: bridge
     internal: true
