@@ -34,8 +34,10 @@ htmlcov/
 # VS CODE
 ####################################
 
-.vscode/
+.vscode/*
 .history/
+# Wyjątek: ustawienia interpretera – przydatne dla całego projektu
+!.vscode/settings.json
 
 ####################################
 # ENV / SECRETS
@@ -45,6 +47,8 @@ htmlcov/
 .env.*
 *.key
 *.pem
+# Wyjątek: szablon zmiennych (nie zawiera sekretów)
+!.env.example
 
 ####################################
 # DATABASES
@@ -61,20 +65,32 @@ htmlcov/
 logs/
 
 ####################################
-# DATASETS (jeśli duże)
+# DATASETS – ignoruj zawartość, śledź strukturę katalogów
 ####################################
 
-data/raw/
+data/raw/**
+!data/raw/.gitkeep
+
+data/processed/**
+!data/processed/.gitkeep
+
+data/datasets/**
+!data/datasets/.gitkeep
+
 data/tmp/
 data/generated/
 
 ####################################
-# MODEL FILES (wytrenowane modele)
+# MODEL FILES – ignoruj binaria, śledź katalog
 ####################################
 
-models/
+models/**
+!models/.gitkeep
 *.pkl
 *.joblib
+*.h5
+*.pt
+*.onnx
 
 ####################################
 # DOCKER

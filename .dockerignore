@@ -1,13 +1,49 @@
-__pycache__/
+# Środowisko deweloperskie
 .venv/
 venv/
+.vscode/
+.history/
+.git/
+
+# Cache Pythona
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 .ipynb_checkpoints/
+
+# Sekrety
+.env
+.env.*
+
+# Duże dane – nie trafiają do obrazu
 data/raw/
+data/datasets/
 data/tmp/
 data/generated/
+
+# Wytrenowane modele (montowane jako wolumeny lub pobierane osobno)
 models/
-*.db
-*.sqlite3
-*.log
-.env
-.vscode/
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.onnx
+
+# Notebooki i eksperymenty – nie są potrzebne w runtime
+notebooks/
+experiments/
+
+# Dokumentacja
+docs/
+*.md
+LICENSE
+
+# Docker overrides
+docker-compose.override.yml
+
+# System
+.DS_Store
+Thumbs.db

@@ -13,10 +13,14 @@ services:
     image: gophish/gophish:latest
     container_name: gophish
     ports:
-      - "127.0.0.1:3333:3333"
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:3333:3333"   # panel admin
+      - "127.0.0.1:8080:8080"   # serwer phishingowy
     environment:
       - TZ=Europe/Warsaw
+    volumes:
+      # własny config: wyłączone TLS, znane porty, SQLite w wolumenie
+      - ./docker/gophish/config.json:/opt/gophish/config.json:ro
+      - gophish_data:/opt/gophish
     networks:
       - lab_internal
     depends_on:
@@ -47,10 +51,14 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ai_agent
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql+psycopg2://thesis:thesis@db:5432/phishing_lab
       SMTP_HOST: mailhog
       SMTP_PORT: 1025
+      MAILHOG_API_URL: http://mailhog:8025
+      GOPHISH_API_URL: http://gophish:3333
       TZ: Europe/Warsaw
     ports:
       - "127.0.0.1:8000:8000"
@@ -61,18 +69,16 @@ services:
       db:
         condition: service_healthy
       mailhog:
-        # narzędzia nie zawsze mają curl/wget/nc do sensownego hc
         condition: service_started
       gophish:
         condition: service_started
     restart: unless-stopped
     healthcheck:
-      # bez curl/requests: używamy urllib w pythonie
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).read()"]
       interval: 10s
       timeout: 3s
       retries: 10
-      start_period: 10s
+      start_period: 15s
 
 networks:
   lab_internal:
@@ -84,3 +90,4 @@ networks:
 
 volumes:
   db_data:
+  gophish_data:
