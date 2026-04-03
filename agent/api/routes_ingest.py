@@ -2,9 +2,9 @@
 Router: masowe pobieranie i klasyfikacja wiadomości.
 
 Endpointy:
-    POST /ingest/mailhog              – pobierz wszystkie e-maile z MailHog i sklasyfikuj
-    POST /ingest/campaign/{name}      – sklasyfikuj e-maile z lokalnej kampanii (data/raw/)
-    DELETE /ingest/mailhog/purge      – wyczyść skrzynkę MailHog
+    POST /ingest/mailhog              - pobierz wszystkie e-maile z MailHog i sklasyfikuj
+    POST /ingest/campaign/{name}      - sklasyfikuj e-maile z lokalnej kampanii (data/raw/)
+    DELETE /ingest/mailhog/purge      - wyczyść skrzynkę MailHog
 """
 from __future__ import annotations
 
