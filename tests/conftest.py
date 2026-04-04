@@ -21,6 +21,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from starlette.testclient import TestClient
 
 # Import modułów agenta po ustawieniu env vars
 import agent.db as _db
@@ -28,7 +29,7 @@ import agent.api.routes_predict as _routes_predict
 import agent.api.routes_results as _routes_results
 import agent.main as _main
 
-from agent.db import Base
+from agent.db import Base, Prediction
 from agent.ingestion.email_parser import ParsedEmail
 
 # ── Testowy engine SQLite (in-memory, współdzielony przez StaticPool) ─────────
@@ -57,7 +58,6 @@ Base.metadata.create_all(bind=_test_engine)
 @pytest.fixture(scope="session")
 def client():
     """FastAPI TestClient – lifespan uruchamiany raz na całą sesję testową."""
-    from starlette.testclient import TestClient
     from agent.main import app
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c
@@ -76,7 +76,6 @@ def db_session():
 @pytest.fixture(autouse=True)
 def clean_predictions():
     """Czyści tabelę predictions przed każdym testem."""
-    from agent.db import Prediction
     db = _TestSession()
     try:
         db.query(Prediction).delete()
@@ -136,11 +135,11 @@ def make_legit_eml(
     )
 
 
-@pytest.fixture()
+@pytest.fixture(scope="module")
 def phishing_parsed() -> ParsedEmail:
     return ParsedEmail.from_string(make_phishing_eml())
 
 
-@pytest.fixture()
+@pytest.fixture(scope="module")
 def legit_parsed() -> ParsedEmail:
     return ParsedEmail.from_string(make_legit_eml())

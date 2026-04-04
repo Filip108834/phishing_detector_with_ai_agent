@@ -6,14 +6,13 @@ ORM lub przez endpoint /predict.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 import pytest
+
+from agent.db import Prediction
 
 
 def _insert_prediction(db_session, label="phishing", model="heuristic", campaign=None):
     """Pomocnik: wstawia rekord Prediction do bazy testowej."""
-    from agent.db import Prediction
     pred = Prediction(
         sender="test@example.com",
         subject="Test",

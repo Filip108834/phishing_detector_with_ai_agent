@@ -13,6 +13,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import agent.api.routes_ingest as ri
+from agent.db import Prediction
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpersy
@@ -54,26 +57,31 @@ def _write_campaign(tmp_path: Path, name: str, emls: list[str], label: str = "ph
     return campaign_dir
 
 
+def _make_mailhog_message(msg_id: str, raw_mime: str) -> MagicMock:
+    """Tworzy mock MailHogMessage."""
+    msg = MagicMock()
+    msg.msg_id = msg_id
+    msg.raw_mime = raw_mime
+    return msg
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Testy: POST /ingest/campaign/{name}
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TestIngestCampaign:
     def test_missing_campaign_returns_404(self, client, tmp_path, monkeypatch):
-        import agent.api.routes_ingest as ri
         monkeypatch.setattr(ri, "RAW_DATA_DIR", tmp_path)
         resp = client.post("/ingest/campaign/nonexistent")
         assert resp.status_code == 404
 
     def test_empty_campaign_dir_returns_422(self, client, tmp_path, monkeypatch):
-        import agent.api.routes_ingest as ri
         monkeypatch.setattr(ri, "RAW_DATA_DIR", tmp_path)
         (tmp_path / "empty_campaign").mkdir()
         resp = client.post("/ingest/campaign/empty_campaign")
         assert resp.status_code == 422
 
     def test_phishing_campaign_classified(self, client, tmp_path, monkeypatch):
-        import agent.api.routes_ingest as ri
         monkeypatch.setattr(ri, "RAW_DATA_DIR", tmp_path)
         _write_campaign(tmp_path, "phish_01", [PHISHING_EML, PHISHING_EML], label="phishing")
         resp = client.post("/ingest/campaign/phish_01")
@@ -84,7 +92,6 @@ class TestIngestCampaign:
         assert data["errors"] == 0
 
     def test_legit_campaign_classified(self, client, tmp_path, monkeypatch):
-        import agent.api.routes_ingest as ri
         monkeypatch.setattr(ri, "RAW_DATA_DIR", tmp_path)
         _write_campaign(tmp_path, "legit_01", [LEGIT_EML, LEGIT_EML], label="legit")
         resp = client.post("/ingest/campaign/legit_01")
@@ -93,9 +100,7 @@ class TestIngestCampaign:
         assert data["classified"] == 2
 
     def test_accuracy_computed_when_metadata_present(self, client, tmp_path, monkeypatch):
-        import agent.api.routes_ingest as ri
         monkeypatch.setattr(ri, "RAW_DATA_DIR", tmp_path)
-        # Wiadomość phishingowa → model heurystyczny powinien sklasyfikować jako phishing
         _write_campaign(tmp_path, "acc_test", [PHISHING_EML], label="phishing")
         resp = client.post("/ingest/campaign/acc_test")
         data = resp.json()
@@ -104,7 +109,6 @@ class TestIngestCampaign:
         assert 0.0 <= data["accuracy"] <= 1.0
 
     def test_no_metadata_no_accuracy(self, client, tmp_path, monkeypatch):
-        import agent.api.routes_ingest as ri
         monkeypatch.setattr(ri, "RAW_DATA_DIR", tmp_path)
         campaign_dir = tmp_path / "no_meta"
         campaign_dir.mkdir()
@@ -115,7 +119,6 @@ class TestIngestCampaign:
         assert data["accuracy"] is None
 
     def test_mixed_campaign_counts_legit_and_phishing(self, client, tmp_path, monkeypatch):
-        import agent.api.routes_ingest as ri
         monkeypatch.setattr(ri, "RAW_DATA_DIR", tmp_path)
         campaign_dir = tmp_path / "mixed"
         campaign_dir.mkdir()
@@ -127,8 +130,6 @@ class TestIngestCampaign:
         assert data["phishing"] + data["legit"] == 2
 
     def test_ingest_saves_to_db(self, client, tmp_path, monkeypatch, db_session):
-        from agent.db import Prediction
-        import agent.api.routes_ingest as ri
         monkeypatch.setattr(ri, "RAW_DATA_DIR", tmp_path)
         _write_campaign(tmp_path, "db_test", [PHISHING_EML], label="phishing")
         client.post("/ingest/campaign/db_test")
@@ -172,13 +173,6 @@ class TestPurgeMailhog:
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TestIngestMailhog:
-    def _make_mailhog_message(self, msg_id: str, raw_mime: str):
-        """Tworzy mock MailHogMessage."""
-        msg = MagicMock()
-        msg.msg_id = msg_id
-        msg.raw_mime = raw_mime
-        return msg
-
     def test_ingest_empty_inbox(self, client):
         with patch("simulation.mailhog_client.MailHogClient") as MockClient:
             mock_instance = MagicMock()
@@ -192,8 +186,8 @@ class TestIngestMailhog:
 
     def test_ingest_classifies_messages(self, client):
         msgs = [
-            self._make_mailhog_message("id1", PHISHING_EML),
-            self._make_mailhog_message("id2", LEGIT_EML),
+            _make_mailhog_message("id1", PHISHING_EML),
+            _make_mailhog_message("id2", LEGIT_EML),
         ]
         with patch("simulation.mailhog_client.MailHogClient") as MockClient:
             mock_instance = MagicMock()

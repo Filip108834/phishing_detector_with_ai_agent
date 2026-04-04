@@ -12,7 +12,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from agent.features.extractor import NUMERICAL_FEATURE_COLS
+from agent.features.extractor import NUMERICAL_FEATURE_COLS, extract
 from agent.ingestion.email_parser import ParsedEmail
 from agent.ml import pipeline as ml
 
@@ -55,16 +55,12 @@ def _make_feature_df(phishing_texts: list[str], legit_texts: list[str]):
 
     for text in phishing_texts:
         parsed = ParsedEmail.from_request(sender="s@s.com", subject="", body=text)
-        from agent.features.extractor import extract
-        feats = extract(parsed)
-        rows.append(feats)
+        rows.append(extract(parsed))
         labels.append(1)
 
     for text in legit_texts:
         parsed = ParsedEmail.from_request(sender="s@s.com", subject="", body=text)
-        from agent.features.extractor import extract
-        feats = extract(parsed)
-        rows.append(feats)
+        rows.append(extract(parsed))
         labels.append(0)
 
     X = pd.DataFrame(rows)
@@ -166,28 +162,24 @@ class TestTrainAndPredict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TestEvaluate:
-    def test_evaluate_returns_required_metrics(self):
+    @pytest.fixture(scope="class")
+    def eval_metrics(self):
+        """Pipeline wytrenowany raz; metryki obliczone raz dla całej klasy."""
         X, y = _make_feature_df(PHISHING_TEXTS, LEGIT_TEXTS)
         pipe = ml.build_pipeline("lr")
         ml.train(pipe, X, y)
-        metrics = ml.evaluate(pipe, X, y)
+        return ml.evaluate(pipe, X, y)
+
+    def test_evaluate_returns_required_metrics(self, eval_metrics):
         required = {"accuracy", "precision", "recall", "f1", "roc_auc",
                     "confusion_matrix", "classification_report"}
-        assert required.issubset(metrics.keys())
+        assert required.issubset(eval_metrics.keys())
 
-    def test_evaluate_accuracy_in_range(self):
-        X, y = _make_feature_df(PHISHING_TEXTS, LEGIT_TEXTS)
-        pipe = ml.build_pipeline("lr")
-        ml.train(pipe, X, y)
-        metrics = ml.evaluate(pipe, X, y)
-        assert 0.0 <= metrics["accuracy"] <= 1.0
+    def test_evaluate_accuracy_in_range(self, eval_metrics):
+        assert 0.0 <= eval_metrics["accuracy"] <= 1.0
 
-    def test_evaluate_confusion_matrix_shape(self):
-        X, y = _make_feature_df(PHISHING_TEXTS, LEGIT_TEXTS)
-        pipe = ml.build_pipeline("lr")
-        ml.train(pipe, X, y)
-        metrics = ml.evaluate(pipe, X, y)
-        cm = metrics["confusion_matrix"]
+    def test_evaluate_confusion_matrix_shape(self, eval_metrics):
+        cm = eval_metrics["confusion_matrix"]
         assert len(cm) == 2
         assert len(cm[0]) == 2
 

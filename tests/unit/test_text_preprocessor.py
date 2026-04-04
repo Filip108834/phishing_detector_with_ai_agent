@@ -10,6 +10,8 @@ Testowane komponenty:
 """
 from __future__ import annotations
 
+import string
+
 import pytest
 
 from agent.features.text_preprocessor import NLTKTextPreprocessor
@@ -57,7 +59,6 @@ class TestTransform:
 
     def test_punctuation_removed(self, preprocessor):
         result = preprocessor.transform(["Hello, world! How are you?"])[0]
-        import string
         for ch in string.punctuation:
             assert ch not in result
 
