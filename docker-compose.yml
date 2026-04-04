@@ -7,6 +7,7 @@ services:
       - "127.0.0.1:1025:1025"
     networks:
       - lab_internal
+      - host_access
     restart: unless-stopped
 
   gophish:
@@ -23,6 +24,7 @@ services:
       - gophish_data:/opt/gophish
     networks:
       - lab_internal
+      - host_access
     depends_on:
       - mailhog
     restart: unless-stopped
@@ -53,8 +55,10 @@ services:
     container_name: ai_agent
     env_file:
       - .env
+    volumes:
+      - ./data:/app/data
     environment:
-      DATABASE_URL: postgresql+psycopg2://thesis:thesis@db:5432/phishing_lab
+      DATABASE_URL: postgresql+psycopg://thesis:thesis@db:5432/phishing_lab
       SMTP_HOST: mailhog
       SMTP_PORT: 1025
       MAILHOG_API_URL: http://mailhog:8025
@@ -65,6 +69,7 @@ services:
     networks:
       - lab_internal
       - db_internal
+      - host_access
     depends_on:
       db:
         condition: service_healthy
@@ -87,6 +92,8 @@ networks:
   db_internal:
     driver: bridge
     internal: true
+  host_access:
+    driver: bridge
 
 volumes:
   db_data:

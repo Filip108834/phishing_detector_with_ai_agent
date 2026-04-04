@@ -11,7 +11,7 @@ Wymagania:
 
 Kroki skryptu:
     1. Weryfikacja połączeń
-    2. Tworzenie profilu wysyłkowego (SMTP → MailHog)
+    2. Tworzenie profilu wysyłkowego (SMTP ->MailHog)
     3. Tworzenie szablonów e-mail (phishing x3 + legit x2)
     4. Tworzenie landing page
     5. Tworzenie grupy testowych odbiorców
@@ -312,7 +312,7 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
 
     print(f"\n[*] Tworzenie kampanii: {campaign_name}")
 
-    # 1. Profil wysyłkowy → MailHog
+    # 1. Profil wysyłkowy ->MailHog
     smtp_id = gophish.create_sending_profile(SendingProfile(
         name=f"{campaign_name}_smtp",
         host="mailhog:1025",
@@ -348,10 +348,10 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     # 5. Kampania
     campaign_id = gophish.create_campaign(Campaign(
         name=campaign_name,
-        template_id=tpl_id,
-        page_id=page_id,
-        smtp_id=smtp_id,
-        group_ids=[group_id],
+        template_name=tpl_data["name"],
+        page_name=f"{campaign_name}_page",
+        smtp_name=f"{campaign_name}_smtp",
+        group_names=[f"{campaign_name}_targets"],
         url="http://gophish:8080",
     ))
     print(f"    [+] Kampania uruchomiona ID={campaign_id}")
@@ -364,7 +364,7 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     output_dir = OUTPUT_BASE / campaign_name
     messages = mailhog.fetch_all()
     paths = mailhog.export_to_eml_dir(messages, output_dir)
-    print(f"[+] Wyeksportowano {len(paths)} wiadomości → {output_dir}/")
+    print(f"[+] Wyeksportowano {len(paths)} wiadomości ->{output_dir}/")
 
     # 8. Metadane kampanii
     metadata = {
@@ -435,7 +435,7 @@ def generate_legit_emails() -> None:
     (output_dir / "metadata.json").write_text(
         json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    print(f"[+] Wyeksportowano {len(paths)} legit e-maili → {output_dir}/")
+    print(f"[+] Wyeksportowano {len(paths)} legit e-maili ->{output_dir}/")
 
 
 # ---------------------------------------------------------------------------

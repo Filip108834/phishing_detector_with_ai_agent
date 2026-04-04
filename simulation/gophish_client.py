@@ -69,10 +69,10 @@ class UserGroup:
 @dataclass
 class Campaign:
     name: str
-    template_id: int
-    page_id: int
-    smtp_id: int
-    group_ids: list[int]
+    template_name: str
+    page_name: str
+    smtp_name: str
+    group_names: list[str]
     url: str = "http://localhost:8080"
     id: int | None = None
     status: str = ""
@@ -213,10 +213,10 @@ class GophishClient:
     def create_campaign(self, campaign: Campaign) -> int:
         payload = {
             "name": campaign.name,
-            "template": {"id": campaign.template_id},
-            "page": {"id": campaign.page_id},
-            "smtp": {"id": campaign.smtp_id},
-            "groups": [{"id": gid} for gid in campaign.group_ids],
+            "template": {"name": campaign.template_name},
+            "page": {"name": campaign.page_name},
+            "smtp": {"name": campaign.smtp_name},
+            "groups": [{"name": n} for n in campaign.group_names],
             "url": campaign.url,
         }
         result = self._post("/campaigns/", payload)
