@@ -99,7 +99,7 @@ PHISHING_TEMPLATES: list[dict] = [
     },
     {
         "name": "lab_phish_password_reset",
-        "subject": "Twoje hasło wygasło – wymagana zmiana",
+        "subject": "Twoje hasło wygasło - wymagana zmiana",
         "text": (
             "Drogi użytkowniku,\n\n"
             "Twoje hasło do konta Microsoft wygasło. "
@@ -132,11 +132,11 @@ PHISHING_TEMPLATES: list[dict] = [
     },
     {
         "name": "lab_phish_package_delivery",
-        "subject": "Nie mogliśmy dostarczyć Twojej paczki – wymagana opłata",
+        "subject": "Nie mogliśmy dostarczyć Twojej paczki - wymagana opłata",
         "text": (
             "Twoja paczka czeka na odbiór.\n\n"
             "Numer przesyłki: PL82746512\n"
-            "Status: Wstrzymana – wymagana dopłata 3,99 PLN\n\n"
+            "Status: Wstrzymana - wymagana dopłata 3,99 PLN\n\n"
             "Aby zwolnić przesyłkę i ustalić termin dostawy, kliknij:\n"
             "{{.URL}}\n\n"
             "Paczka zostanie zwrócona po 3 dniach roboczych."
@@ -173,7 +173,7 @@ PHISHING_TEMPLATES: list[dict] = [
 LEGIT_TEMPLATES: list[dict] = [
     {
         "name": "lab_legit_newsletter",
-        "subject": "Miesięczny newsletter działu IT – kwiecień 2025",
+        "subject": "Miesięczny newsletter działu IT - kwiecień 2025",
         "text": (
             "Witajcie,\n\n"
             "W tym miesiącu zakończyliśmy migrację serwerów do nowej infrastruktury. "
@@ -193,7 +193,7 @@ LEGIT_TEMPLATES: list[dict] = [
     <p>Zakończyliśmy migrację serwerów aplikacyjnych do nowej infrastruktury.
        Wszystkie usługi działają stabilnie.</p>
     <h4>Planowane prace serwisowe</h4>
-    <p>Sobota, 5 kwietnia, godz. <strong>2:00–4:00</strong>. Przerwa w dostępie do poczty.</p>
+    <p>Sobota, 5 kwietnia, godz. <strong>2:00-4:00</strong>. Przerwa w dostępie do poczty.</p>
     <h4>Nowe zasoby w intranecie</h4>
     <p>Dokumentacja techniczna dostępna pod adresem
        <a href="http://intranet.lab.local/wiki">intranet.lab.local/wiki</a>.</p>
@@ -204,7 +204,7 @@ LEGIT_TEMPLATES: list[dict] = [
     },
     {
         "name": "lab_legit_meeting_invite",
-        "subject": "Zaproszenie na spotkanie zespołu – piątek 10:00",
+        "subject": "Zaproszenie na spotkanie zespołu - piątek 10:00",
         "text": (
             "Cześć,\n\n"
             "Zapraszam na spotkanie podsumowujące sprint w piątek o 10:00 w sali konferencyjnej A2.\n\n"
@@ -266,7 +266,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
       <input type="password" name="password" placeholder="Hasło">
       <button type="submit">Potwierdź</button>
     </form>
-    <!-- STRONA TESTOWA – ŚRODOWISKO LABORATORYJNE -->
+    <!-- STRONA TESTOWA - ŚRODOWISKO LABORATORYJNE -->
   </div>
 </body>
 </html>"""
@@ -293,7 +293,7 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
         template_key:  nazwa szablonu z PHISHING_TEMPLATES
     """
     if not GOPHISH_API_KEY:
-        print("[BŁĄD] Brak GOPHISH_API_KEY – uzupełnij plik .env i spróbuj ponownie.")
+        print("[BŁĄD] Brak GOPHISH_API_KEY - uzupełnij plik .env i spróbuj ponownie.")
         print("       Klucz API znajdziesz w Gophish UI: http://localhost:3333 -> Account Settings")
         sys.exit(1)
 
@@ -469,7 +469,7 @@ def _wait_for_delivery(client: MailHogClient, expected: int, timeout: int = 30) 
             print(f"    [+] Odebrano {count} wiadomości.")
             return
         time.sleep(1)
-    print(f"    [!] Timeout – odebrano {client.count()}/{expected} wiadomości.")
+    print(f"    [!] Timeout - odebrano {client.count()}/{expected} wiadomości.")
 
 
 # ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 """
-Background poller – automatyczna klasyfikacja nowych e-maili z MailHog.
+Background poller - automatyczna klasyfikacja nowych e-maili z MailHog.
 
 Uruchamiany jako asyncio task w FastAPI lifespan.
 Co `interval` sekund pobiera wiadomości z MailHog i klasyfikuje nowe

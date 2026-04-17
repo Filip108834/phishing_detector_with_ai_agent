@@ -1,5 +1,5 @@
 """
-Konfiguracja bazy danych – SQLAlchemy engine, session, modele ORM.
+Konfiguracja bazy danych - SQLAlchemy engine, session, modele ORM.
 
 Importuj stąd: engine, SessionLocal, Base, Prediction
 """

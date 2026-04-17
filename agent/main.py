@@ -1,5 +1,5 @@
 """
-Agent AI – punkt wejścia FastAPI.
+Agent AI - punkt wejścia FastAPI.
 
 Odpowiedzialność tego modułu jest celowo ograniczona do:
     1. Konfiguracji aplikacji i lifecycle (lifespan)
@@ -7,10 +7,10 @@ Odpowiedzialność tego modułu jest celowo ograniczona do:
     3. Endpointu /health
 
 Logika biznesowa, schematy i dostęp do DB żyją w osobnych modułach:
-    agent/db.py             – SQLAlchemy engine, SessionLocal, Prediction
-    agent/state.py          – współdzielony stan modelu i pollera
-    agent/api/schemas.py    – modele Pydantic
-    agent/api/routes_*.py   – endpointy pogrupowane tematycznie
+    agent/db.py             - SQLAlchemy engine, SessionLocal, Prediction
+    agent/state.py          - współdzielony stan modelu i pollera
+    agent/api/schemas.py    - modele Pydantic
+    agent/api/routes_*.py   - endpointy pogrupowane tematycznie
 """
 from __future__ import annotations
 
@@ -77,7 +77,7 @@ async def lifespan(app: FastAPI):
 # ---------------------------------------------------------------------------
 
 app = FastAPI(
-    title="AI Agent – Detekcja phishingu",
+    title="AI Agent - Detekcja phishingu",
     version="0.3.0",
     description=(
         "System klasyfikacji wiadomości e-mail jako phishing lub legit. "

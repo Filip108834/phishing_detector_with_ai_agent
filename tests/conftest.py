@@ -1,5 +1,5 @@
 """
-Główny conftest – ustawiany PRZED importem jakichkolwiek modułów agenta.
+Główny conftest - ustawiany PRZED importem jakichkolwiek modułów agenta.
 
 Kolejność działania:
     1. os.environ ustawiony zanim cokolwiek z agent.* zostanie załadowane
@@ -57,7 +57,7 @@ Base.metadata.create_all(bind=_test_engine)
 
 @pytest.fixture(scope="session")
 def client():
-    """FastAPI TestClient – lifespan uruchamiany raz na całą sesję testową."""
+    """FastAPI TestClient - lifespan uruchamiany raz na całą sesję testową."""
     from agent.main import app
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c

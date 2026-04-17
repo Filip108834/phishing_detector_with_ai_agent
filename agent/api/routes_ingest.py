@@ -107,7 +107,7 @@ def ingest_campaign(campaign_name: str) -> IngestCampaignResponse:
     Klasyfikuje wszystkie pliki .eml z lokalnego katalogu kampanii.
 
     Katalog: data/raw/<campaign_name>/
-    Metadane: data/raw/<campaign_name>/metadata.json  (opcjonalnie – ground truth)
+    Metadane: data/raw/<campaign_name>/metadata.json  (opcjonalnie - ground truth)
     """
     campaign_dir = RAW_DATA_DIR / campaign_name
     if not campaign_dir.exists():

@@ -18,7 +18,7 @@ htmlcov/
 .env
 .env.*
 
-# Duże dane – nie trafiają do obrazu
+# Duże dane - nie trafiają do obrazu
 data/raw/
 data/datasets/
 data/tmp/
@@ -32,7 +32,7 @@ models/
 *.pt
 *.onnx
 
-# Notebooki i eksperymenty – nie są potrzebne w runtime
+# Notebooki i eksperymenty - nie są potrzebne w runtime
 notebooks/
 experiments/
 

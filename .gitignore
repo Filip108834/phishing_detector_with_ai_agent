@@ -36,7 +36,7 @@ htmlcov/
 
 .vscode/*
 .history/
-# Wyjątek: ustawienia interpretera – przydatne dla całego projektu
+# Wyjątek: ustawienia interpretera - przydatne dla całego projektu
 !.vscode/settings.json
 
 ####################################
@@ -65,7 +65,7 @@ htmlcov/
 logs/
 
 ####################################
-# DATASETS – ignoruj zawartość, śledź strukturę katalogów
+# DATASETS - ignoruj zawartość, śledź strukturę katalogów
 ####################################
 
 data/raw/**
@@ -81,7 +81,7 @@ data/tmp/
 data/generated/
 
 ####################################
-# MODEL FILES – ignoruj binaria, śledź katalog
+# MODEL FILES - ignoruj binaria, śledź katalog
 ####################################
 
 models/**

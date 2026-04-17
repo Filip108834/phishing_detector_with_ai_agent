@@ -18,7 +18,7 @@ import requests
 from requests import Response
 
 # ---------------------------------------------------------------------------
-# Modele danych (proste dataclassy – wystarczające na potrzeby skryptów)
+# Modele danych (proste dataclassy - wystarczające na potrzeby skryptów)
 # ---------------------------------------------------------------------------
 
 @dataclass
@@ -229,7 +229,7 @@ class GophishClient:
         self._delete(f"/campaigns/{campaign_id}")
 
     # ------------------------------------------------------------------
-    # Cleanup – usuwa wszystkie zasoby stworzone na potrzeby kampanii
+    # Cleanup - usuwa wszystkie zasoby stworzone na potrzeby kampanii
     # ------------------------------------------------------------------
 
     def teardown(
@@ -257,7 +257,7 @@ class GophishClient:
 # ---------------------------------------------------------------------------
 
 def _raise_gophish(r: Response) -> None:
-    """Gophish zwraca HTTP 200 nawet przy błędach – sprawdzamy pole 'success'."""
+    """Gophish zwraca HTTP 200 nawet przy błędach - sprawdzamy pole 'success'."""
     try:
         body = r.json()
     except Exception:

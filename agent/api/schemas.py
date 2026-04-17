@@ -84,7 +84,7 @@ class IngestCampaignResponse(BaseModel):
     phishing: int
     legit: int
     errors: int
-    # Jeśli dostępna etykieta z metadata.json – zwraca metryki
+    # Jeśli dostępna etykieta z metadata.json - zwraca metryki
     accuracy: Optional[float] = None
     ground_truth_available: bool = False
 

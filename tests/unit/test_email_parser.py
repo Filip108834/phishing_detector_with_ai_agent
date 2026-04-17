@@ -2,8 +2,8 @@
 Testy jednostkowe: agent/ingestion/email_parser.py
 
 Testowane komponenty:
-    - ParsedEmail.from_string()  – parsowanie surowych wiadomości MIME
-    - ParsedEmail.from_request() – budowanie z danych API
+    - ParsedEmail.from_string()  - parsowanie surowych wiadomości MIME
+    - ParsedEmail.from_request() - budowanie z danych API
     - Ekstrakcja URL, SPF, nagłówków, hopów
 """
 from __future__ import annotations

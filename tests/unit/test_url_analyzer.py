@@ -2,9 +2,9 @@
 Testy jednostkowe: agent/features/url_analyzer.py
 
 Testowane komponenty:
-    - analyze_urls()     – agregacja cech z listy URL-i
-    - _char_entropy()    – entropia Shannona
-    - _analyze_single()  – analiza pojedynczego URL-a
+    - analyze_urls()     - agregacja cech z listy URL-i
+    - _char_entropy()    - entropia Shannona
+    - _analyze_single()  - analiza pojedynczego URL-a
 """
 from __future__ import annotations
 

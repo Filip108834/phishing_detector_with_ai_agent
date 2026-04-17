@@ -16,7 +16,7 @@ from typing import Any, Optional
 model: dict[str, Any] = {
     "pipeline": None,    # sklearn Pipeline lub None
     "type":     "heuristic",   # "ml" | "heuristic"
-    "path":     None,          # str – ścieżka do pliku .joblib
+    "path":     None,          # str - ścieżka do pliku .joblib
 }
 
 

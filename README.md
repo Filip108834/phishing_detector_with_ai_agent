@@ -12,7 +12,7 @@
 
 Repozytorium zawiera implementację systemu opracowywanego w ramach pracy inżynierskiej pt.:
 
-**„Wykorzystanie agenta AI do detekcji phishingu – symulacja ataków i badanie skuteczności mechanizmów obronnych"**
+**„Wykorzystanie agenta AI do detekcji phishingu - symulacja ataków i badanie skuteczności mechanizmów obronnych"**
 
 Celem projektu jest zaprojektowanie oraz implementacja środowiska umożliwiającego:
 
@@ -81,7 +81,7 @@ System integruje narzędzia do symulacji phishingu z pipeline'em analitycznym op
 ### Baza danych
 
 * PostgreSQL 16 (główna)
-* SQLite (Gophish – wewnętrzna)
+* SQLite (Gophish - wewnętrzna)
 
 ---
 
@@ -90,7 +90,7 @@ System integruje narzędzia do symulacji phishingu z pipeline'em analitycznym op
 ```
 phishing_detector_with_ai_agent/
 │
-├── agent/                      # Agent AI – FastAPI + logika klasyfikatora
+├── agent/                      # Agent AI - FastAPI + logika klasyfikatora
 │   ├── __init__.py
 │   └── main.py                 # Endpointy /predict, /health + model baseline
 │
@@ -137,7 +137,7 @@ cd phishing_detector_with_ai_agent
 
 ```bash
 cp .env.example .env
-# Edytuj .env – uzupełnij GOPHISH_API_KEY po pierwszym uruchomieniu (krok 4)
+# Edytuj .env - uzupełnij GOPHISH_API_KEY po pierwszym uruchomieniu (krok 4)
 ```
 
 ### 3. Uruchomienie środowiska laboratoryjnego

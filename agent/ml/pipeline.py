@@ -11,10 +11,10 @@ Architektura pipeline'u:
     label: 0/1  +  proba: float
 
 Dostępne warianty klasyfikatora (argument `model_name`):
-    "lr"        – Logistic Regression (szybki baseline)
-    "rf"        – Random Forest
-    "gb"        – Gradient Boosting
-    "ensemble"  – VotingClassifier(lr + rf + gb, soft voting)  [domyślny]
+    "lr"        - Logistic Regression (szybki baseline)
+    "rf"        - Random Forest
+    "gb"        - Gradient Boosting
+    "ensemble"  - VotingClassifier(lr + rf + gb, soft voting)  [domyślny]
 """
 from __future__ import annotations
 
@@ -247,7 +247,7 @@ def _explain(feats: dict, score: float) -> list[str]:
     if feats.get("feat_from_reply_to_mismatch"):
         reasons.append("Niezgodność domeny From i Reply-To.")
     if feats.get("feat_spf_fail"):
-        reasons.append("SPF fail/softfail – wiadomość mogła zostać sfałszowana.")
+        reasons.append("SPF fail/softfail - wiadomość mogła zostać sfałszowana.")
     urgency = feats.get("feat_subject_urgency_score", 0)
     if urgency >= 2:
         reasons.append(f"Temat zawiera {int(urgency)} słów wskazujących pilność/presję.")

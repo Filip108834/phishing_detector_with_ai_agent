@@ -1,5 +1,5 @@
 """
-Preprocessor tekstu oparty na NLTK – kompatybilny ze sklearn.
+Preprocessor tekstu oparty na NLTK - kompatybilny ze sklearn.
 
 Wykonuje:
     1. Zamiana na małe litery

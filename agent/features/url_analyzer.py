@@ -38,17 +38,17 @@ def analyze_urls(urls: list[str]) -> dict[str, float]:
     Przelicza cechy URL-i na płaski słownik wartości liczbowych.
 
     Zwracane klucze:
-        url_count                – liczba URL-i w wiadomości
-        has_ip_url               – 1 jeśli jakikolwiek URL używa IP zamiast domeny
-        has_suspicious_tld       – 1 jeśli TLD jest na liście podejrzanych
-        has_url_keyword          – 1 jeśli URL zawiera słowo kluczowe phishingu
-        has_at_in_url            – 1 jeśli URL zawiera @ (technika maskowania)
-        has_redirect_param       – 1 jeśli URL ma parametr przekierowania
-        max_url_length           – max długość URL-a
-        avg_url_length           – średnia długość URL-i
-        max_subdomain_depth      – max głębokość subdomen (sugestia ukrywania domeny)
-        avg_url_entropy          – średnia entropia znaków URL-i
-        url_domain_diversity     – liczba unikalnych domen / liczba URL-i (0..1)
+        url_count                - liczba URL-i w wiadomości
+        has_ip_url               - 1 jeśli jakikolwiek URL używa IP zamiast domeny
+        has_suspicious_tld       - 1 jeśli TLD jest na liście podejrzanych
+        has_url_keyword          - 1 jeśli URL zawiera słowo kluczowe phishingu
+        has_at_in_url            - 1 jeśli URL zawiera @ (technika maskowania)
+        has_redirect_param       - 1 jeśli URL ma parametr przekierowania
+        max_url_length           - max długość URL-a
+        avg_url_length           - średnia długość URL-i
+        max_subdomain_depth      - max głębokość subdomen (sugestia ukrywania domeny)
+        avg_url_entropy          - średnia entropia znaków URL-i
+        url_domain_diversity     - liczba unikalnych domen / liczba URL-i (0..1)
     """
     if not urls:
         return _zero_features()

@@ -134,7 +134,7 @@ def extract(parsed: ParsedEmail) -> dict[str, Any]:
     features["feat_caps_ratio"] = float(upper_count / max(alpha_count, 1))
 
     # ----------------------------------------------------------------
-    # 5. Cechy NLP (spaCy) – fallback 0.0 gdy model niedostępny
+    # 5. Cechy NLP (spaCy) - fallback 0.0 gdy model niedostępny
     # ----------------------------------------------------------------
     nlp_feats = analyze_text(full_text)
     features.update(nlp_feats)

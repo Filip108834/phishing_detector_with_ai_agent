@@ -2,7 +2,7 @@
 Parser wiadomości e-mail.
 
 Wejście:  surowy string MIME (zawartość pliku .eml) lub ścieżka do pliku.
-Wyjście:  ParsedEmail – ustrukturyzowany obiekt gotowy do ekstrakcji cech.
+Wyjście:  ParsedEmail - ustrukturyzowany obiekt gotowy do ekstrakcji cech.
 
 Moduł używa wyłącznie bibliotek standardowych + beautifulsoup4/lxml,
 bez żadnych wywołań sieciowych.

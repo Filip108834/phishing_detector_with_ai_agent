@@ -2,8 +2,8 @@
 Testy jednostkowe: agent/features/text_preprocessor.py
 
 Testowane komponenty:
-    - NLTKTextPreprocessor.transform() – przetwarzanie tekstu
-    - NLTKTextPreprocessor.fit()       – kompatybilność sklearn
+    - NLTKTextPreprocessor.transform() - przetwarzanie tekstu
+    - NLTKTextPreprocessor.fit()       - kompatybilność sklearn
     - Normalizacja URL/e-mail/liczb
     - Usuwanie stopwords
     - Stemming
@@ -63,7 +63,7 @@ class TestTransform:
             assert ch not in result
 
     def test_stopwords_removed(self, preprocessor):
-        # "the", "is", "a" – typowe angielskie stopwords
+        # "the", "is", "a" - typowe angielskie stopwords
         result = preprocessor.transform(["the dog is a friend"])[0]
         words = result.split()
         assert "the" not in words

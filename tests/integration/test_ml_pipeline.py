@@ -138,7 +138,7 @@ class TestTrainAndPredict:
         )
         _, score, _ = ml.predict_email(trained_pipeline, parsed)
         # Wytrenowany model powinien dawać wyższy score dla phishingu
-        assert score > 0.3  # luźny próg – mały zbiór treningowy
+        assert score > 0.3  # luźny próg - mały zbiór treningowy
 
     def test_legit_email_low_score(self, trained_pipeline):
         parsed = ParsedEmail.from_request(

@@ -7,9 +7,9 @@ Obsługiwane źródła:
   - Enron email dataset         (data/datasets/enron/emails.csv)
 
 Zwracany DataFrame ma zawsze kolumny:
-    raw_eml  : str   – surowa treść MIME (lub syntetyczna dla API-input)
-    label    : int   – 0 = legit, 1 = phishing/spam
-    source   : str   – identyfikator zbioru danych
+    raw_eml  : str   - surowa treść MIME (lub syntetyczna dla API-input)
+    label    : int   - 0 = legit, 1 = phishing/spam
+    source   : str   - identyfikator zbioru danych
 """
 from __future__ import annotations
 
@@ -125,7 +125,7 @@ def load_enron(csv_path: Path = ENRON_CSV, max_rows: int = 20_000) -> pd.DataFra
     Kolumny CSV: file, message
     """
     if not csv_path.exists():
-        logger.info("Enron CSV nie znaleziony (%s) – pomijam.", csv_path)
+        logger.info("Enron CSV nie znaleziony (%s) - pomijam.", csv_path)
         return _empty_df()
 
     df_raw = pd.read_csv(

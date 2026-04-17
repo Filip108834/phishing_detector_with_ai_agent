@@ -2,13 +2,13 @@
 Analiza NLP tekstu e-maila przy użyciu spaCy.
 
 Cechy wyciągane z modelu en_core_web_sm:
-  NER  – liczba encji typów ORG, MONEY, DATE, CARDINAL
-  POS  – gęstość czasowników i rzeczowników, liczba czasowników rozkazujących
-  Zdania – liczba zdań, średnia długość zdania, stosunek zdań z wykrzyknikiem
-  Leksykalne – unikalność tokenów (TTR), współczynnik słów funkcyjnych
+  NER  - liczba encji typów ORG, MONEY, DATE, CARDINAL
+  POS  - gęstość czasowników i rzeczowników, liczba czasowników rozkazujących
+  Zdania - liczba zdań, średnia długość zdania, stosunek zdań z wykrzyknikiem
+  Leksykalne - unikalność tokenów (TTR), współczynnik słów funkcyjnych
 
 Moduł ładuje model spaCy leniwie (raz, przy pierwszym wywołaniu).
-Jeśli model jest niedostępny, zwraca wektor zerowy – cały pipeline ML
+Jeśli model jest niedostępny, zwraca wektor zerowy - cały pipeline ML
 działa nadal poprawnie, tylko bez tych cech.
 
 Instalacja modelu:
@@ -40,7 +40,7 @@ def _get_nlp():
         import spacy
         _nlp = spacy.load(
             "en_core_web_sm",
-            # Wyłączamy parser zależności – używamy lekkiego sentence segmentera
+            # Wyłączamy parser zależności - używamy lekkiego sentence segmentera
             # Zostawiamy: tok2vec, tagger, senter, ner, attribute_ruler, lemmatizer
             exclude=["parser"],
         )
@@ -108,7 +108,7 @@ def analyze_text(text: str, max_chars: int = 8_000) -> dict[str, float]:
 
 def analyze_texts_batch(texts: list[str], max_chars: int = 8_000) -> list[dict[str, float]]:
     """
-    Wersja wsadowa – wydajniejsza przy trenowaniu na dużym zbiorze.
+    Wersja wsadowa - wydajniejsza przy trenowaniu na dużym zbiorze.
     Używa nlp.pipe() dla lepszej wydajności.
     """
     nlp = _get_nlp()

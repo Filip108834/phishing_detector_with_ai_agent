@@ -2,9 +2,9 @@
 Router: klasyfikacja wiadomości e-mail.
 
 Endpointy:
-    POST /predict      – klasyfikacja z JSON (sender, subject, body, urls, headers)
-    POST /predict/raw  – klasyfikacja z surowego MIME (.eml string)
-    GET  /model/info   – informacje o aktywnym modelu
+    POST /predict      - klasyfikacja z JSON (sender, subject, body, urls, headers)
+    POST /predict/raw  - klasyfikacja z surowego MIME (.eml string)
+    GET  /model/info   - informacje o aktywnym modelu
 """
 from __future__ import annotations
 

@@ -99,7 +99,7 @@ def fetch_spamassassin(force: bool = False) -> dict[str, int]:
 
         if dest_dir.exists() and any(dest_dir.iterdir()) and not force:
             n = len(list(dest_dir.glob("*")))
-            print(f"  [skip] {target_dir} – już pobrany ({n} plików)")
+            print(f"  [skip] {target_dir} - już pobrany ({n} plików)")
             counts[target_dir] = n
             continue
 
