@@ -26,7 +26,14 @@ _URL_RE = re.compile(
 )
 
 # Nagłówki które ekstrakcja zachowuje (poza standardowymi)
-_EXTRA_HEADERS = ("x-mailer", "x-originating-ip", "x-spam-status", "x-spam-score")
+_EXTRA_HEADERS = (
+    "x-mailer",
+    "x-originating-ip",
+    "x-spam-status",
+    "x-spam-score",
+    "authentication-results",   # zawiera wyniki DKIM/SPF/DMARC
+    "dkim-signature",           # obecność = własny podpis DKIM
+)
 
 
 @dataclass

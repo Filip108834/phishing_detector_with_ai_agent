@@ -20,6 +20,13 @@ from agent.features.nlp_analyzer import NLP_FEATURE_COLS, analyze_text
 from agent.features.url_analyzer import analyze_urls
 from agent.ingestion.email_parser import ParsedEmail
 
+# Znane narzędzia do wysyłania phishingu / masowej poczty
+# identyfikowane przez nagłówek X-Mailer.
+_KNOWN_PHISH_MAILERS = frozenset([
+    "gophish", "goPhish", "mass mailer", "phpmailer", "sendblaster",
+    "atomic mail sender", "dark mailer", "interspire",
+])
+
 # Słowa wskazujące pilność / presję czasową
 _URGENCY_WORDS = frozenset([
     "urgent", "immediately", "verify", "confirm", "suspended", "blocked",
@@ -59,6 +66,8 @@ NUMERICAL_FEATURE_COLS: list[str] = [
     "feat_has_attachments",
     "feat_spf_fail",
     "feat_received_hops",
+    "feat_xmailer_known_phish_tool",
+    "feat_has_dkim",
     # --- Stylistyczne ---
     "feat_text_length",
     "feat_exclamation_density",
@@ -118,6 +127,20 @@ def extract(parsed: ParsedEmail) -> dict[str, Any]:
 
     # Liczba przeskoków Received (bardzo duża = podejrzana)
     features["feat_received_hops"] = float(min(parsed.received_hops, 20))
+
+    # X-Mailer: znane narzędzie phishingowe / masowej poczty
+    xmailer = parsed.extra_headers.get("x-mailer", "").lower()
+    features["feat_xmailer_known_phish_tool"] = float(
+        any(tool.lower() in xmailer for tool in _KNOWN_PHISH_MAILERS)
+    )
+
+    # DKIM: brak podpisu DKIM to słaby sygnał phishingu
+    # Authentication-Results jest parsowany do extra_headers przez email_parser
+    auth_results = parsed.extra_headers.get("authentication-results", "").lower()
+    dkim_header  = parsed.extra_headers.get("dkim-signature", "").lower()
+    features["feat_has_dkim"] = float(
+        "dkim=pass" in auth_results or bool(dkim_header)
+    )
 
     # ----------------------------------------------------------------
     # 4. Cechy stylistyczne treści

@@ -1,0 +1,21 @@
+{
+  "model": "ensemble",
+  "trained_at": "2026-04-17T09:44:37.730964",
+  "dataset_size": 2050,
+  "train_size": 1640,
+  "test_size": 410,
+  "test_metrics": {
+    "accuracy": 0.9902439024390244,
+    "precision": 0.9950980392156863,
+    "recall": 0.9854368932038835,
+    "f1": 0.9902439024390244,
+    "roc_auc": 0.9981915096135541
+  },
+  "cv_metrics": {
+    "accuracy": 0.9902439024390244,
+    "precision_weighted": 0.990332215779309,
+    "recall_weighted": 0.9902439024390244,
+    "f1_weighted": 0.9902434613131458,
+    "roc_auc": 0.998676946506758
+  }
+}

@@ -83,7 +83,9 @@ def build_feature_matrix(df_raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]
         logger.warning("Nie udało się sparsować %d/%d wiadomości.", errors, len(df_raw))
 
     X = pd.DataFrame(rows)
-    y = df_raw["label"].reset_index(drop=True)
+    # pd.concat różnych źródeł może zmieniać dtype kolumny label na object/float.
+    # Wymuszone rzutowanie na int zapobiega błędowi sklearn "Unknown label type: unknown".
+    y = df_raw["label"].reset_index(drop=True).astype(int)
 
     # Wypełnij brakujące wartości numeryczne zerem (dla wiadomości które się nie sparsowały)
     num_cols = [c for c in X.columns if c.startswith("feat_")]

@@ -80,14 +80,17 @@ def _ensure_nltk() -> bool:
 
 class NLTKTextPreprocessor(BaseEstimator, TransformerMixin):
     """
-    sklearn-kompatybilny transformer tokenizujący i stemujący tekst.
+    sklearn-kompatybilny transformer tokenizujący i (opcjonalnie) stemujący tekst.
 
     Parametry:
-        language:   język dla stemmera i stopwords ('english' domyślnie)
-        min_token_len: minimalna długość tokenu po stemmingu
+        language:      język dla stemmera i stopwords ('english' domyślnie).
+                       Przekaż None aby wyłączyć stemming - właściwe dla treści
+                       wielojęzycznych (np. mieszanina PL/EN), gdzie stemmer
+                       angielski zniekształcałby polskie tokeny.
+        min_token_len: minimalna długość tokenu po przetworzeniu.
     """
 
-    def __init__(self, language: str = "english", min_token_len: int = 2) -> None:
+    def __init__(self, language: str | None = "english", min_token_len: int = 2) -> None:
         self.language = language
         self.min_token_len = min_token_len
 
@@ -114,11 +117,13 @@ class NLTKTextPreprocessor(BaseEstimator, TransformerMixin):
 
         all_stops = en_stops | _POLISH_STOPWORDS
 
-        # Stemmer
-        try:
-            stemmer = SnowballStemmer(self.language)
-        except Exception:
-            stemmer = None
+        # Stemmer - pomijany gdy language=None (tryb wielojęzyczny)
+        stemmer = None
+        if self.language is not None:
+            try:
+                stemmer = SnowballStemmer(self.language)
+            except Exception:
+                pass
 
         # Normalizacja
         text = text.lower()

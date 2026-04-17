@@ -32,8 +32,12 @@ _spacy_ok = False    # czy model udało się załadować
 def _get_nlp():
     """Ładuje model spaCy przy pierwszym wywołaniu; cache'uje wynik."""
     global _nlp, _spacy_ok
-    if _nlp is not None or _spacy_ok is False and _nlp is None:
-        # Już próbowaliśmy (niezależnie od wyniku)
+    # Zwróć wynik z cache jeśli już próbowaliśmy załadować model
+    # (niezależnie od tego czy się udało, czy nie).
+    # Poprzednia wersja: `_nlp is not None or _spacy_ok is False and _nlp is None`
+    # - przez pierwszeństwo `and` > `or` warunek był True przy pierwszym wywołaniu
+    # (_spacy_ok=False, _nlp=None), więc model nigdy nie był ładowany.
+    if _nlp is not None or _spacy_ok is False:
         return _nlp
 
     try:
@@ -126,11 +130,21 @@ def analyze_texts_batch(texts: list[str], max_chars: int = 8_000) -> list[dict[s
 # Typy POS uznawane za słowa funkcyjne (spójniki, przyimki, zaimki, partykuły)
 _FUNCTION_POS = frozenset(["ADP", "AUX", "CCONJ", "DET", "PART", "PRON", "SCONJ"])
 
-# Czasowniki mogące być rozkazem (POS=VERB, dep=ROOT, lemma w słowniku)
+# Czasowniki mogące być rozkazem (POS=VERB, dep=ROOT, lemma w słowniku).
+# Lista dwujęzyczna: en_core_web_sm lematyzuje angielskie lematy poprawnie;
+# polskie formy rozkazujące (bez fleksji) trafiają tu jako fallback gdy
+# sentencizer przekaże je jako ROOT - spaCy nie lematyzuje PL idealnie,
+# ale wykrywa podstawowe formy czasownikowe.
 _IMPERATIVE_LEMMAS = frozenset([
+    # --- Angielskie ---
     "click", "verify", "confirm", "update", "login", "sign", "enter",
     "provide", "send", "call", "contact", "access", "download", "open",
     "submit", "fill", "check", "visit", "review",
+    # --- Polskie ---
+    "kliknij", "zweryfikuj", "potwierdź", "zaktualizuj", "zaloguj",
+    "podaj", "wyślij", "zadzwoń", "skontaktuj", "pobierz", "otwórz",
+    "wypełnij", "sprawdź", "odwiedź", "przejdź", "wprowadź", "zapłać",
+    "opłać", "wpisz", "aktywuj", "odblokuj", "zarejestruj",
 ])
 
 

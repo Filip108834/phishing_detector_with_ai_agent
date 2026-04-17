@@ -462,14 +462,20 @@ def _check_mailhog(client: MailHogClient) -> None:
 
 
 def _wait_for_delivery(client: MailHogClient, expected: int, timeout: int = 30) -> None:
+    # Zapamiętaj stan skrzynki PRZED wysyłką, żeby liczyć tylko nowe wiadomości.
+    # Poprzednia wersja porównywała client.count() z `expected`, co powodowało
+    # natychmiastowe wyjście jeśli w skrzynce pozostały wiadomości z poprzedniej
+    # kampanii (wyścig czasowy / false-positive).
+    count_before = client.count()
     deadline = time.time() + timeout
     while time.time() < deadline:
-        count = client.count()
-        if count >= expected:
-            print(f"    [+] Odebrano {count} wiadomości.")
+        new_count = client.count() - count_before
+        if new_count >= expected:
+            print(f"    [+] Odebrano {new_count} nowych wiadomości.")
             return
         time.sleep(1)
-    print(f"    [!] Timeout - odebrano {client.count()}/{expected} wiadomości.")
+    delivered = client.count() - count_before
+    print(f"    [!] Timeout - odebrano {delivered}/{expected} nowych wiadomości.")
 
 
 # ---------------------------------------------------------------------------

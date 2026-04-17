@@ -27,7 +27,7 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import (
-    GradientBoostingClassifier,
+    HistGradientBoostingClassifier,
     RandomForestClassifier,
     VotingClassifier,
 )
@@ -67,15 +67,17 @@ def build_pipeline(model_name: str = "ensemble") -> Pipeline:
     Args:
         model_name: "lr" | "rf" | "gb" | "ensemble"
     """
-    # Gałąź tekstowa: NLTK preprocessing → TF-IDF (unigrams + bigrams)
+    # Gałąź tekstowa: NLTK preprocessing → TF-IDF (unigrams + bigrams).
+    # language=None wyłącza stemmer angielski, który zniekształcałby polskie tokeny.
+    # strip_accents usunięto - polskie znaki diakrytyczne (ą, ę, ó…) są cechami
+    # semantycznymi i nie powinny być sprowadzane do ich ASCII-odpowiedników.
     text_pipeline = Pipeline([
-        ("nltk_prep", NLTKTextPreprocessor(language="english")),
+        ("nltk_prep", NLTKTextPreprocessor(language=None)),
         ("tfidf", TfidfVectorizer(
             ngram_range=(1, 2),
             max_features=8_000,
             sublinear_tf=True,
             min_df=2,
-            strip_accents="unicode",
             analyzer="word",
         )),
     ])
@@ -86,6 +88,11 @@ def build_pipeline(model_name: str = "ensemble") -> Pipeline:
             ("num",  StandardScaler(), NUMERICAL_FEATURE_COLS),
         ],
         remainder="drop",
+        # sparse_threshold=0: zawsze gęsta macierz wyjściowa.
+        # HistGradientBoostingClassifier nie akceptuje macierzy rzadkich
+        # (scipy.sparse), więc wymuszamy dense aby pipeline działał dla
+        # wszystkich wariantów klasyfikatora (lr, rf, gb, ensemble).
+        sparse_threshold=0.0,
     )
 
     classifier = _build_classifier(model_name)
@@ -111,10 +118,14 @@ def _build_classifier(model_name: str) -> Any:
         n_jobs=-1,
         random_state=42,
     )
-    gb = GradientBoostingClassifier(
-        n_estimators=150,
+    # HistGradientBoostingClassifier zastępuje GradientBoostingClassifier:
+    # - obsługuje class_weight="balanced" (GBC nie ma tego parametru)
+    # - znacząco szybszy na dużych zbiorach (histogram-based binning)
+    gb = HistGradientBoostingClassifier(
+        max_iter=150,
         max_depth=5,
         learning_rate=0.1,
+        class_weight="balanced",
         random_state=42,
     )
 

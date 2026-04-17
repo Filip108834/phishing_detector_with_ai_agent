@@ -117,10 +117,20 @@ def load_campaigns(base_dir: Path = CAMPAIGNS_DIR) -> pd.DataFrame:
     return df
 
 
-def load_enron(csv_path: Path = ENRON_CSV, max_rows: int = 20_000) -> pd.DataFrame:
+def load_enron(
+    csv_path: Path = ENRON_CSV,
+    max_rows: int = 20_000,
+    max_per_class: int | None = None,
+) -> pd.DataFrame:
     """
     Wczytuje Enron dataset (emails.csv z Kaggle).
     Enron zawiera wyłącznie legit e-maile (etykieta = 0).
+
+    Args:
+        csv_path:      ścieżka do pliku emails.csv
+        max_rows:      bezwzględna górna granica wczytywanych wierszy
+        max_per_class: jeśli podane, ogranicza wynik do tej liczby
+                       (ma pierwszeństwo przed max_rows)
 
     Kolumny CSV: file, message
     """
@@ -128,10 +138,14 @@ def load_enron(csv_path: Path = ENRON_CSV, max_rows: int = 20_000) -> pd.DataFra
         logger.info("Enron CSV nie znaleziony (%s) - pomijam.", csv_path)
         return _empty_df()
 
+    effective_limit = max_rows
+    if max_per_class is not None:
+        effective_limit = min(max_rows, max_per_class)
+
     df_raw = pd.read_csv(
         csv_path,
         usecols=["message"],
-        nrows=max_rows,
+        nrows=effective_limit,
         on_bad_lines="skip",
     )
     df_raw = df_raw.dropna(subset=["message"])
@@ -163,7 +177,7 @@ def load_all(
         parts.append(load_campaigns())
 
     if include_enron:
-        parts.append(load_enron())
+        parts.append(load_enron(max_per_class=max_per_class))
 
     if not parts:
         return _empty_df()

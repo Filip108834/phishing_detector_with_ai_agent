@@ -57,6 +57,7 @@ services:
       - .env
     volumes:
       - ./data:/app/data
+      - ./models:/app/models
     environment:
       DATABASE_URL: postgresql+psycopg://thesis:thesis@db:5432/phishing_lab
       SMTP_HOST: mailhog
