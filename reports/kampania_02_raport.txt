@@ -11,10 +11,10 @@ SPIS TREŚCI
 1.  Cel eksperymentu
 2.  Poprawki zastosowane przed eksperymentem
 3.  Środowisko laboratoryjne
-4.  Przebieg kampanii – kroki i wyniki
-5.  Wyniki klasyfikacji – model heurystyczny (dane archiwalne)
+4.  Przebieg kampanii - kroki i wyniki
+5.  Wyniki klasyfikacji - model heurystyczny (dane archiwalne)
 6.  Porównanie wariantów modelu ML
-7.  Wyniki klasyfikacji – model ML (Ensemble)
+7.  Wyniki klasyfikacji - model ML (Ensemble)
 8.  Porównanie Heurystyka vs ML
 9.  Analiza błędów i ograniczeń pozostałych po poprawkach
 10. Wnioski do pracy dyplomowej
@@ -27,7 +27,7 @@ SPIS TREŚCI
 
 Faza 6 miała trzy cele:
 
-  a) Weryfikacja poprawności naprawionych bugów (W1–W4, A1) z przeglądu kodu.
+  a) Weryfikacja poprawności naprawionych bugów (W1-W4, A1) z przeglądu kodu.
   b) Przeprowadzenie pełnego cyklu: kampanie phishingowe → ingestion →
      trenowanie modelu ML → klasyfikacja przez ML → pomiar skuteczności.
   c) Kwantyfikacja poprawy skuteczności po przejściu z modelu heurystycznego
@@ -38,7 +38,7 @@ Faza 6 miała trzy cele:
 2. POPRAWKI ZASTOSOWANE PRZED EKSPERYMENTEM
 ================================================================================
 
-2.1 W1 – Bug logiczny w _get_nlp() [agent/features/nlp_analyzer.py]
+2.1 W1 - Bug logiczny w _get_nlp() [agent/features/nlp_analyzer.py]
     Poprzedni kod:
       if _nlp is not None or _spacy_ok is False and _nlp is None:
     Poprawiony kod:
@@ -47,44 +47,44 @@ Faza 6 miała trzy cele:
     pierwszeństwa operatorów. Po poprawce model spaCy jest ładowany przy
     pierwszym wywołaniu i cechy NLP są obliczane poprawnie.
 
-2.2 W2 – Niedopasowanie języka w NLP pipeline [3 pliki]
+2.2 W2 - Niedopasowanie języka w NLP pipeline [3 pliki]
     a) NLTKTextPreprocessor: dodano obsługę language=None (wyłącza stemmer),
-       wywołanie w pipeline zmieniono na language=None – stemmer angielski
+       wywołanie w pipeline zmieniono na language=None - stemmer angielski
        nie będzie już zniekształcał polskich tokenów.
-    b) TfidfVectorizer: usunięto strip_accents="unicode" – polskie znaki
+    b) TfidfVectorizer: usunięto strip_accents="unicode" - polskie znaki
        diakrytyczne (ą, ę, ó, ś…) są teraz zachowane jako osobne cechy.
     c) nlp_analyzer: dodano 22 polskie lematy rozkazujące do _IMPERATIVE_LEMMAS
        (kliknij, zweryfikuj, opłać, potwierdź, zaloguj itp.).
 
-2.3 W3 – Wyścig czasowy w _wait_for_delivery [simulation/campaign_generator.py]
+2.3 W3 - Wyścig czasowy w _wait_for_delivery [simulation/campaign_generator.py]
     Dodano count_before = client.count() przed pętlą oczekiwania.
     Warunek stopu zmieniony z count >= expected na (count - count_before) >= expected.
     Skutek: kampanie prowadzone sekwencyjnie bez ryzyka fałszywego zakończenia
     oczekiwania z powodu wiadomości z poprzedniej kampanii.
 
-2.4 W4 – Nowe cechy z nagłówka X-Mailer i DKIM [2 pliki]
+2.4 W4 - Nowe cechy z nagłówka X-Mailer i DKIM [2 pliki]
     a) email_parser.py: dodano "authentication-results" i "dkim-signature"
-       do listy _EXTRA_HEADERS – te nagłówki są teraz parsowane i dostępne.
+       do listy _EXTRA_HEADERS - te nagłówki są teraz parsowane i dostępne.
     b) extractor.py: dodano dwie nowe cechy numeryczne:
        - feat_xmailer_known_phish_tool: 1 jeśli X-Mailer zawiera nazwę
          znanych narzędzi phishingowych (gophish, phpmailer, mass mailer…)
        - feat_has_dkim: 1 jeśli wiadomość ma podpis DKIM (legit sygnał)
     Obie cechy dodane do NUMERICAL_FEATURE_COLS (vector: 35 → 37 kolumn).
 
-2.5 A1 – Balans klas i max_per_class dla Enrona [2 pliki]
+2.5 A1 - Balans klas i max_per_class dla Enrona [2 pliki]
     a) dataset_loader.py: load_enron() przyjmuje teraz max_per_class,
        load_all() przekazuje ten parametr dalej.
        Skutek: --max-per-class N działa spójnie dla wszystkich źródeł danych.
     b) pipeline.py: GradientBoostingClassifier zastąpiony przez
        HistGradientBoostingClassifier(class_weight="balanced").
        Skutek: komponent GB w ensemble jest odporny na niezbalansowane klasy.
-       (Wymagało też sparse_threshold=0.0 w ColumnTransformer – HistGBT nie
+       (Wymagało też sparse_threshold=0.0 w ColumnTransformer - HistGBT nie
        akceptuje macierzy rzadkich scipy.sparse.)
 
 2.6 Dodatkowe poprawki wykryte podczas uruchomienia
-    - train_model.py: y = df_raw["label"].astype(int) – pd.concat różnych
+    - train_model.py: y = df_raw["label"].astype(int) - pd.concat różnych
       źródeł powodował dtype object, co wywoływało "Unknown label type" w sklearn.
-    - docker-compose.yml: dodano wolumen ./models:/app/models – kontener nie
+    - docker-compose.yml: dodano wolumen ./models:/app/models - kontener nie
       miał dostępu do wytrenowanego pliku models/classifier.joblib.
 
 
@@ -108,7 +108,7 @@ Zbiory treningowe:
   - Kampanie lokalne (data/raw/):
       30 phishingowych e-maili (3 kampanie × 5 odbiorców × 2 rundy)
       20 legit e-maili (legit_batch_01, 2 × 10)
-  - Enron: niedostępny (brak pliku CSV) – pominięty automatycznie
+  - Enron: niedostępny (brak pliku CSV) - pominięty automatycznie
 
 Trening z parametrem --max-per-class 1000:
   Łącznie: 2050 wiadomości | legit=1020 (49.8%) | phishing/spam=1030 (50.2%)
@@ -126,28 +126,28 @@ Model ML:
 
 
 ================================================================================
-4. PRZEBIEG KAMPANII – KROKI I WYNIKI
+4. PRZEBIEG KAMPANII - KROKI I WYNIKI
 ================================================================================
 
-KAMPANIA 1 – Alert bankowy (lab_phish_bank_alert)
+KAMPANIA 1 - Alert bankowy (lab_phish_bank_alert)
   Szablon:   PILNE: Zablokowano Twoje konto bankowe
   Typ:       Phishing
   Odbiorcy:  5 (jan.kowalski, anna.nowak, piotr.wisniewski, k.dabrowska, m.lewandowski)
   Dostarczone: 5/5 → data/raw/campaign2_bank_alert/ (5 plików .eml)
 
-KAMPANIA 2 – Reset hasła (lab_phish_password_reset)
+KAMPANIA 2 - Reset hasła (lab_phish_password_reset)
   Szablon:   Twoje hasło wygasło - wymagana zmiana (Microsoft brand)
   Typ:       Phishing
   Odbiorcy:  5
   Dostarczone: 5/5 → data/raw/campaign2_password_reset/ (5 plików .eml)
 
-KAMPANIA 3 – Fałszywy kurier (lab_phish_package_delivery)
+KAMPANIA 3 - Fałszywy kurier (lab_phish_package_delivery)
   Szablon:   Nie mogliśmy dostarczyć Twojej paczki - wymagana opłata 3,99 PLN
   Typ:       Phishing
   Odbiorcy:  5
   Dostarczone: 5/5 → data/raw/campaign2_package_delivery/ (5 plików .eml)
 
-BATCH LEGIT – Newsletter + Zaproszenie na spotkanie
+BATCH LEGIT - Newsletter + Zaproszenie na spotkanie
   Szablony:  lab_legit_newsletter, lab_legit_meeting_invite
   Typ:       Legit
   Odbiorcy:  5 × 2 szablony = 10 nowych wiadomości
@@ -164,7 +164,7 @@ ZESTAWIENIE KAMPANII:
 
 
 ================================================================================
-5. WYNIKI KLASYFIKACJI – MODEL HEURYSTYCZNY (DANE ARCHIWALNE Z FAZY 5)
+5. WYNIKI KLASYFIKACJI - MODEL HEURYSTYCZNY (DANE ARCHIWALNE Z FAZY 5)
 ================================================================================
 
 Model heurystyczny pozostaje niezmieniony. Wyniki dla tej samej struktury
@@ -172,10 +172,10 @@ kampanii są deterministyczne:
 
   Kampania                  | GT    | TP | FN | FP | TN | Accuracy
   --------------------------|-------|----|----|----|----|---------
-  campaign_bank_alert       | phish | 0  | 5  |  – |  – |  0.0%
-  campaign_password_reset   | phish | 0  | 5  |  – |  – |  0.0%
-  campaign_package_delivery | phish | 0  | 5  |  – |  – |  0.0%
-  legit_batch_01 (10 szt.)  | legit | –  |  – |  0 | 10 | 100.0%
+  campaign_bank_alert       | phish | 0  | 5  |  - |  - |  0.0%
+  campaign_password_reset   | phish | 0  | 5  |  - |  - |  0.0%
+  campaign_package_delivery | phish | 0  | 5  |  - |  - |  0.0%
+  legit_batch_01 (10 szt.)  | legit | -  |  - |  0 | 10 | 100.0%
 
   TPR (Recall):  0.0%   (wszystkie phishingi niewidoczne dla heurystyki)
   TNR:          100.0%  (brak fałszywych alarmów dla legit)
@@ -199,12 +199,12 @@ Podział: Train 1640 | Test 410
   Ensemble | 0.9902   | 0.9951    | 0.9854 | 0.9902 | 0.9982
 
 Obserwacje:
-  - Logistic Regression: najniższy recall (0.9320) – pomija ~7% phishingów.
+  - Logistic Regression: najniższy recall (0.9320) - pomija ~7% phishingów.
     Wynika to z liniowej granicy decyzji niewystarczającej dla złożonych wzorców.
-  - Random Forest: idealna precyzja (1.000) – zero fałszywych alarmów na teście.
-    Recall 0.9757 – kilka phishingów klasyfikuje jako legit.
+  - Random Forest: idealna precyzja (1.000) - zero fałszywych alarmów na teście.
+    Recall 0.9757 - kilka phishingów klasyfikuje jako legit.
   - HistGBT: najwyższe AUC (0.9995) i najniższy recall (0.9806 < ensemble).
-    Silny model, ale pojedynczo – mniej stabilny niż ensemble.
+    Silny model, ale pojedynczo - mniej stabilny niż ensemble.
   - Ensemble (wybrany): balansuje precyzję i recall. Recall 0.9854 oznacza,
     że 98.5% phishingów jest wykrywanych. Przy 1000 e-mailach phishingowych
     tylko ~15 przejdzie niezauważonych.
@@ -213,7 +213,7 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
 
 
 ================================================================================
-7. WYNIKI KLASYFIKACJI – MODEL ML (ENSEMBLE)
+7. WYNIKI KLASYFIKACJI - MODEL ML (ENSEMBLE)
 ================================================================================
 
 7.1 METRYKI NA ZBIORZE TESTOWYM (test set = 410 wiadomości)
@@ -247,7 +247,7 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
   Interpretacja: Małe odchylenie między test set a CV sugeruje brak
   overfittingu. Model generalizuje poprawnie.
 
-7.3 WYNIKI KLASYFIKACJI PRZEZ ML – KAMPANIE FAZY 6
+7.3 WYNIKI KLASYFIKACJI PRZEZ ML - KAMPANIE FAZY 6
 
   Kampania                   | GT    | Sklasyf. | Phish | Legit | Accuracy | Score avg
   ---------------------------|-------|----------|-------|-------|----------|---------
@@ -270,7 +270,7 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
 
   UWAGA: Idealne wyniki na zbiorze kampanii wynikają z małej liczebności
   próbek (35 e-maili) i faktu, że te same kampanie były częścią zbioru
-  treningowego. Należy interpretować z ostrożnością – nie jest to
+  treningowego. Należy interpretować z ostrożnością - nie jest to
   niezależna walidacja.
 
 
@@ -285,7 +285,7 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
   Precision     |  N/A (brak TP)      | 100.0% (kampanie)
   F1            |  0.000              |  1.000 (kampanie)
   Accuracy      | 40.0%               | 100.0% (kampanie)
-  AUC (test set)|   –                 |  0.998
+  AUC (test set)|   -                 |  0.998
 
   SCORE per kampania (model heurystyczny):
     bank_alert:       avg=0.300  (poniżej progu 0.50 → legit)
@@ -308,7 +308,7 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
 9. ANALIZA BŁĘDÓW I OGRANICZEŃ POZOSTAŁYCH PO POPRAWKACH
 ================================================================================
 
-9.1 DOMAIN SHIFT – WEWNĘTRZNE ADRESY URL (NIE NAPRAWIONE – WYMAGA DANYCH)
+9.1 DOMAIN SHIFT - WEWNĘTRZNE ADRESY URL (NIE NAPRAWIONE - WYMAGA DANYCH)
     URL-e kampanii Gophish (http://gophish:8080?rid=xxx) nie odpowiadają
     rzeczywistym phishing URL-om (np. http://bank-secure.xyz/login.php).
     Cechy feat_has_ip_url, feat_has_suspicious_tld, feat_has_url_keyword
@@ -328,7 +328,7 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
     Enron (do 20k legit) niedostępny bez ręcznego pobrania.
     Skutek: model nie jest trenowany na maksymalnym dostępnym zbiorze.
 
-9.4 SPACY MODEL EN_CORE_WEB_SM – ANGIELSKI MODEL (NADAL AKTYWNY)
+9.4 SPACY MODEL EN_CORE_WEB_SM - ANGIELSKI MODEL (NADAL AKTYWNY)
     Model NLP spaCy przetwarza polskie e-maile z angielskim modelem.
     Po naprawie W1 (bug w _get_nlp) cechy NLP są obliczane, ale jakość
     NER/POS dla polskiego tekstu jest ograniczona.
@@ -338,7 +338,7 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
 
 9.5 TIMEOUT W _WAIT_FOR_DELIVERY (POZOSTAŁY EFEKT)
     Mimo naprawionego mechanizmu count_before, timeout 30s jest za krótki
-    dla Gophish w sieci Docker. Wszystkie 3 kampanie zwróciły "Timeout –
+    dla Gophish w sieci Docker. Wszystkie 3 kampanie zwróciły "Timeout -
     odebrano 0/5 nowych wiadomości" mimo że e-maile dotarły (5 eksportowanych).
     Gophish dostarcza wiadomości z opóźnieniem > 30s (sieć bridge Docker).
     Skutek: komunikat timeout jest mylący, ale eksport działa poprawnie.
@@ -350,26 +350,26 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
 10. WNIOSKI DO PRACY DYPLOMOWEJ
 ================================================================================
 
-WNIOSEK 1 – DRAMATYCZNA POPRAWA PO ZASTOSOWANIU ML
+WNIOSEK 1 - DRAMATYCZNA POPRAWA PO ZASTOSOWANIU ML
    Model heurystyczny: TPR=0%, F1=0.000
    Model ML (Ensemble): TPR=100% (na kampaniach), F1=0.9902 (na test set)
    Wyniki potwierdzają zasadność zastosowania uczenia maszynowego jako
    głównej metody klasyfikacji. Heurystyka pozostaje użyteczna jedynie jako
    fallback przy braku wytrenowanego modelu.
 
-WNIOSEK 2 – ENSEMBLE JEST LEPSZY OD POJEDYNCZYCH MODELI
+WNIOSEK 2 - ENSEMBLE JEST LEPSZY OD POJEDYNCZYCH MODELI
    Na zbiorze testowym: GB ≈ Ensemble (F1=0.9902), ale Ensemble ma wyższy
    recall (0.9854 vs 0.9806) i niższe ryzyko overfittingu (potwierdza CV).
-   Dla bezpieczeństwa kluczowy jest wysoki recall – każdy pominięty phishing
+   Dla bezpieczeństwa kluczowy jest wysoki recall - każdy pominięty phishing
    to potencjalne zagrożenie. Ensemble minimalizuje błędy obu typów.
 
-WNIOSEK 3 – SPÓJNOŚĆ CV I TEST SET DOWODZI BRAKU OVERFITTINGU
+WNIOSEK 3 - SPÓJNOŚĆ CV I TEST SET DOWODZI BRAKU OVERFITTINGU
    CV 5-fold: F1=0.9902, AUC=0.9987
    Test set: F1=0.9902, AUC=0.9982
-   Rozbieżność < 0.001 – model generalizuje poprawnie i nie jest "uczony
+   Rozbieżność < 0.001 - model generalizuje poprawnie i nie jest "uczony
    na pamięć" zbioru treningowego.
 
-WNIOSEK 4 – NAPRAWA BUGÓW MIAŁA REALNY WPŁYW NA JAKOŚĆ MODELU
+WNIOSEK 4 - NAPRAWA BUGÓW MIAŁA REALNY WPŁYW NA JAKOŚĆ MODELU
    a) Bug W1 (_get_nlp): 12 cech NLP było permanentnie = 0.0. Po naprawie
       model zyskuje informacje semantyczne o tekście (NER, POS, zdania).
    b) Bug W2 (strip_accents): polskie tokeny ("zablokowano", "potwierdź")
@@ -379,7 +379,7 @@ WNIOSEK 4 – NAPRAWA BUGÓW MIAŁA REALNY WPŁYW NA JAKOŚĆ MODELU
    Każdy z tych bugów samodzielnie mógłby obniżyć skuteczność o kilka
    punktów procentowych.
 
-WNIOSEK 5 – FEAT_XMAILER_KNOWN_PHISH_TOOL JEST PRAWDOPODOBNIE DOMINUJĄCĄ CECHĄ
+WNIOSEK 5 - FEAT_XMAILER_KNOWN_PHISH_TOOL JEST PRAWDOPODOBNIE DOMINUJĄCĄ CECHĄ
    Wszystkie kampanie Gophish zawierają nagłówek X-Mailer: gophish.
    Cecha feat_xmailer_known_phish_tool = 1.0 dla każdej takiej wiadomości
    i 0.0 dla legit e-maili. Wysoka separowalność tej cechy może tłumaczyć
@@ -389,7 +389,7 @@ WNIOSEK 5 – FEAT_XMAILER_KNOWN_PHISH_TOOL JEST PRAWDOPODOBNIE DOMINUJĄCĄ CEC
    IMPLIKACJA: Przed wdrożeniem produkcyjnym należy sprawdzić ważność cech
    (feature importance) i usunąć/zważyć cechy specyficzne dla środowiska lab.
 
-WNIOSEK 6 – PROBLEM DOMENY: WYNIKI LAB ≠ WYNIKI PRODUKCYJNE
+WNIOSEK 6 - PROBLEM DOMENY: WYNIKI LAB ≠ WYNIKI PRODUKCYJNE
    Idealny wynik na kampaniach (100% accuracy) jest częściowo artefaktem:
    - Te same kampanie były w zbiorze treningowym (data leakage ryzyko)
    - X-Mailer Gophish to unikalna sygnatura lab, nieobecna w realnych atakach
@@ -397,7 +397,7 @@ WNIOSEK 6 – PROBLEM DOMENY: WYNIKI LAB ≠ WYNIKI PRODUKCYJNE
    Należy przeprowadzić walidację na niezależnym zbiorze polskojęzycznych
    e-maili phishingowych z zewnętrznego źródła (np. CERT Polska, PhishTank).
 
-WNIOSEK 7 – ARCHITEKTURA DWUTOROWA DZIAŁA POPRAWNIE
+WNIOSEK 7 - ARCHITEKTURA DWUTOROWA DZIAŁA POPRAWNIE
    Model ML jest ładowany automatycznie jeśli istnieje models/classifier.joblib
    (graceful degradation → heurystyka gdy brak pliku). Poller MailHog działa
    niezależnie w tle. REST API klasyfikuje e-maile w < 100ms.
@@ -427,8 +427,8 @@ Baza danych PostgreSQL (thesis_db, tabela predictions):
   Model: ml (VotingClassifier Ensemble)
 
 Pliki wyjściowe:
-  reports/kampania_01_raport.txt  (Faza 5 – heurystyka)
-  reports/kampania_02_raport.txt  (Faza 6 – niniejszy raport)
+  reports/kampania_01_raport.txt  (Faza 5 - heurystyka)
+  reports/kampania_02_raport.txt  (Faza 6 - niniejszy raport)
 
 
 ================================================================================

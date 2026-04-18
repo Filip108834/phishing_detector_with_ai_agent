@@ -1,14 +1,14 @@
 ================================================================================
   PHISHING DETECTOR WITH AI AGENT
-  Pełny przewodnik uruchomienia – od zera do wyników kampanii
+  Pełny przewodnik uruchomienia - od zera do wyników kampanii
 ================================================================================
 
   Opis projektu:
     System laboratoryjny do wykrywania phishingu. Składa się z:
-      - GoPhish        – platforma symulacji kampanii phishingowych
-      - MailHog        – fałszywy serwer SMTP/skrzynka odbiorcza (lab only)
-      - PostgreSQL     – baza danych predykcji
-      - Agent AI       – FastAPI + ML pipeline (spaCy + TF-IDF + Ensemble)
+      - GoPhish        - platforma symulacji kampanii phishingowych
+      - MailHog        - fałszywy serwer SMTP/skrzynka odbiorcza (lab only)
+      - PostgreSQL     - baza danych predykcji
+      - Agent AI       - FastAPI + ML pipeline (spaCy + TF-IDF + Ensemble)
 
   Wymagania wstępne:
       - Docker Desktop  (https://www.docker.com/products/docker-desktop/)
@@ -36,7 +36,7 @@
 
 
 ================================================================================
-  KROK 1 – SKLONOWANIE REPOZYTORIUM
+  KROK 1 - SKLONOWANIE REPOZYTORIUM
 ================================================================================
 
 [ TERMINAL ]
@@ -45,7 +45,7 @@
 
 
 ================================================================================
-  KROK 2 – KONFIGURACJA ŚRODOWISKA PYTHON (lokalnie)
+  KROK 2 - KONFIGURACJA ŚRODOWISKA PYTHON (lokalnie)
 ================================================================================
 
   Środowisko lokalne jest potrzebne do:
@@ -56,10 +56,10 @@
 [ TERMINAL ]
   python -m venv .venv
 
-  # Aktywacja – Windows PowerShell:
+  # Aktywacja - Windows PowerShell:
   .venv\Scripts\Activate.ps1
 
-  # Aktywacja – Windows CMD:
+  # Aktywacja - Windows CMD:
   .venv\Scripts\activate.bat
 
   # Instalacja zależności:
@@ -72,7 +72,7 @@
 
 
 ================================================================================
-  KROK 3 – PLIK .ENV (konfiguracja środowiskowa)
+  KROK 3 - PLIK .ENV (konfiguracja środowiskowa)
 ================================================================================
 
 [ TERMINAL ]
@@ -104,7 +104,7 @@
 
 
 ================================================================================
-  KROK 4 – URUCHOMIENIE DOCKER DESKTOP
+  KROK 4 - URUCHOMIENIE DOCKER DESKTOP
 ================================================================================
 
 [ UWAGA ]
@@ -117,7 +117,7 @@
 
 
 ================================================================================
-  KROK 5 – BUDOWANIE I URUCHOMIENIE KONTENERÓW
+  KROK 5 - BUDOWANIE I URUCHOMIENIE KONTENERÓW
 ================================================================================
 
 [ TERMINAL ]
@@ -153,7 +153,7 @@
 
 
 ================================================================================
-  KROK 6 – POBRANIE KLUCZA API GOPHISH
+  KROK 6 - POBRANIE KLUCZA API GOPHISH
 ================================================================================
 
   GoPhish przy pierwszym uruchomieniu generuje tymczasowe hasło administratora
@@ -172,7 +172,7 @@
   2. Zaloguj się:
        Login:    admin
        Password: <hasło z logów>
-  3. System poprosi o zmianę hasła – ustaw nowe i zapisz je.
+  3. System poprosi o zmianę hasła - ustaw nowe i zapisz je.
   4. Po zalogowaniu kliknij ikonę osoby (prawy górny róg) → "Account Settings"
   5. Skopiuj wartość pola "API Key"
 
@@ -186,7 +186,7 @@
 
 
 ================================================================================
-  KROK 7 – POBRANIE ZBIORÓW DANYCH DO TRENOWANIA
+  KROK 7 - POBRANIE ZBIORÓW DANYCH DO TRENOWANIA
 ================================================================================
 
 [ TERMINAL - .venv ]
@@ -203,15 +203,15 @@
     2. Wypakuj do katalogu: data/datasets/enron/
 
   Bez Enrona model będzie trenowany tylko na SpamAssassin.
-  Możesz pominąć Enrona – model nadal będzie działać.
+  Możesz pominąć Enrona - model nadal będzie działać.
 
 
 ================================================================================
-  KROK 8 – TRENOWANIE MODELU ML
+  KROK 8 - TRENOWANIE MODELU ML
 ================================================================================
 
 [ TERMINAL - .venv ]
-  # Trenowanie ensembla (zalecane) – zajmuje 2-10 minut:
+  # Trenowanie ensembla (zalecane) - zajmuje 2-10 minut:
   python -m experiments.train_model
 
   # Opcje dodatkowe:
@@ -229,11 +229,11 @@
 [ UWAGA ]
   Kontener ai-agent ma zamontowany katalog ./models jako wolumin,
   więc plik classifier.joblib jest dostępny bezpośrednio.
-  Model ładuje się przy starcie aplikacji – restart jest wymagany.
+  Model ładuje się przy starcie aplikacji - restart jest wymagany.
 
 
 ================================================================================
-  KROK 9 – WERYFIKACJA GOTOWOŚCI SYSTEMU
+  KROK 9 - WERYFIKACJA GOTOWOŚCI SYSTEMU
 ================================================================================
 
 [ TERMINAL ]  Sprawdź status agenta AI:
@@ -242,7 +242,7 @@
   Oczekiwana odpowiedź (model ML aktywny):
     {"status":"ok","model":"ml","poller":"running"}
 
-  Odpowiedź z modelem heurystycznym (bez ML) – gdy brak pliku classifier.joblib:
+  Odpowiedź z modelem heurystycznym (bez ML) - gdy brak pliku classifier.joblib:
     {"status":"ok","model":"heuristic","poller":"running"}
 
 [ TERMINAL ]  Sprawdź informacje o modelu:
@@ -259,7 +259,7 @@
 
 
 ================================================================================
-  KROK 10 – URUCHOMIENIE KAMPANII PHISHINGOWEJ
+  KROK 10 - URUCHOMIENIE KAMPANII PHISHINGOWEJ
 ================================================================================
 
   Skrypt campaign_generator.py:
@@ -272,9 +272,9 @@
     - Zapisuje metadata.json z etykietą "phishing"
 
   Dostępne szablony phishingowe:
-    lab_phish_bank_alert       – fałszywy alert bezpieczeństwa banku
-    lab_phish_password_reset   – wygasłe hasło Microsoft
-    lab_phish_package_delivery – niedostarczona paczka (DHL/UPS)
+    lab_phish_bank_alert       - fałszywy alert bezpieczeństwa banku
+    lab_phish_password_reset   - wygasłe hasło Microsoft
+    lab_phish_package_delivery - niedostarczona paczka (DHL/UPS)
 
   -------------------------------------------------------------------------
   Opcja A: JEDNA kampania (wybrany szablon)
@@ -317,7 +317,7 @@
 
 
 ================================================================================
-  KROK 11 – INGEST I KLASYFIKACJA WIADOMOŚCI
+  KROK 11 - INGEST I KLASYFIKACJA WIADOMOŚCI
 ================================================================================
 
   -------------------------------------------------------------------------
@@ -373,7 +373,7 @@
 
 
 ================================================================================
-  KROK 12 – PODGLĄD WYNIKÓW I STATYSTYK
+  KROK 12 - PODGLĄD WYNIKÓW I STATYSTYK
 ================================================================================
 
 [ TERMINAL ]  Ogólne statystyki wszystkich predykcji:
@@ -414,7 +414,7 @@
 
 
 ================================================================================
-  KROK 13 – STATUS POLLERA MAILHOG
+  KROK 13 - STATUS POLLERA MAILHOG
 ================================================================================
 
   Agent AI automatycznie poluje skrzynkę MailHog co 15 sekund
@@ -436,7 +436,7 @@
 
 
 ================================================================================
-  KROK 14 – URUCHOMIENIE TESTÓW
+  KROK 14 - URUCHOMIENIE TESTÓW
 ================================================================================
 
 [ TERMINAL - .venv ]
@@ -461,7 +461,7 @@
 
 
 ================================================================================
-  KROK 15 – ZARZĄDZANIE KONTENERAMI
+  KROK 15 - ZARZĄDZANIE KONTENERAMI
 ================================================================================
 
 [ TERMINAL ]  Zatrzymanie kontenerów (dane zachowane):
@@ -473,7 +473,7 @@
 [ TERMINAL ]  Zatrzymanie i usunięcie kontenerów (dane zachowane w wolumenach):
   docker compose down
 
-[ TERMINAL ]  Pełne czyszczenie – usunięcie kontenerów I wolumenów (USUWA DANE DB):
+[ TERMINAL ]  Pełne czyszczenie - usunięcie kontenerów I wolumenów (USUWA DANE DB):
   docker compose down -v
 
 [ TERMINAL ]  Restart pojedynczego kontenera:
@@ -616,35 +616,35 @@
 ================================================================================
 
   phishing_detector_with_ai_agent/
-  ├── agent/                  – kod FastAPI (API, ML pipeline, parsery)
-  │   ├── api/                – endpointy: predict, ingest, results
-  │   ├── features/           – ekstrakcja cech (NLP, URL, text)
-  │   ├── ingestion/          – parser e-maili, loader datasetów, poller
-  │   ├── ml/                 – pipeline sklearn
-  │   ├── db.py               – SQLAlchemy, tabela predictions
-  │   ├── main.py             – punkt wejścia FastAPI
-  │   └── state.py            – współdzielony stan (model, poller)
-  ├── simulation/             – symulacja kampanii
-  │   ├── campaign_generator.py – orkiestracja GoPhish + MailHog
-  │   ├── gophish_client.py   – wrapper REST API GoPhish
-  │   └── mailhog_client.py   – wrapper REST API MailHog
+  ├── agent/                  - kod FastAPI (API, ML pipeline, parsery)
+  │   ├── api/                - endpointy: predict, ingest, results
+  │   ├── features/           - ekstrakcja cech (NLP, URL, text)
+  │   ├── ingestion/          - parser e-maili, loader datasetów, poller
+  │   ├── ml/                 - pipeline sklearn
+  │   ├── db.py               - SQLAlchemy, tabela predictions
+  │   ├── main.py             - punkt wejścia FastAPI
+  │   └── state.py            - współdzielony stan (model, poller)
+  ├── simulation/             - symulacja kampanii
+  │   ├── campaign_generator.py - orkiestracja GoPhish + MailHog
+  │   ├── gophish_client.py   - wrapper REST API GoPhish
+  │   └── mailhog_client.py   - wrapper REST API MailHog
   ├── experiments/
-  │   ├── train_model.py      – trening i ewaluacja klasyfikatora
-  │   └── results/            – wyniki trenowań (JSON)
+  │   ├── train_model.py      - trening i ewaluacja klasyfikatora
+  │   └── results/            - wyniki trenowań (JSON)
   ├── scripts/
-  │   └── fetch_datasets.py   – pobieranie zbiorów danych
-  ├── tests/                  – testy unit / component / integration
+  │   └── fetch_datasets.py   - pobieranie zbiorów danych
+  ├── tests/                  - testy unit / component / integration
   ├── data/
-  │   ├── raw/                – surowe .eml z kampanii + metadata.json
-  │   └── datasets/           – zbiory treningowe (SpamAssassin, Enron)
-  ├── models/                 – wytrenowane modele (.joblib)
-  ├── reports/                – raporty kampanii
+  │   ├── raw/                - surowe .eml z kampanii + metadata.json
+  │   └── datasets/           - zbiory treningowe (SpamAssassin, Enron)
+  ├── models/                 - wytrenowane modele (.joblib)
+  ├── reports/                - raporty kampanii
   ├── docker/
-  │   └── gophish/config.json – konfiguracja GoPhish (bez TLS, SQLite)
-  ├── docker-compose.yml      – definicja wszystkich usług
-  ├── Dockerfile              – multi-stage build obrazu ai-agent
-  ├── .env.example            – szablon zmiennych środowiskowych
-  └── requirements.txt        – zależności Pythona
+  │   └── gophish/config.json - konfiguracja GoPhish (bez TLS, SQLite)
+  ├── docker-compose.yml      - definicja wszystkich usług
+  ├── Dockerfile              - multi-stage build obrazu ai-agent
+  ├── .env.example            - szablon zmiennych środowiskowych
+  └── requirements.txt        - zależności Pythona
 
 ================================================================================
   WAŻNE ADRESY
@@ -658,24 +658,24 @@
   PostgreSQL            localhost:5432  (user: thesis / pass: thesis / db: phishing_lab)
 
 ================================================================================
-  ENDPOINTY API – SKRÓCONA ŚCIĄGAWKA
+  ENDPOINTY API - SKRÓCONA ŚCIĄGAWKA
 ================================================================================
 
-  GET  /health                              – status agenta i modelu
-  GET  /model/info                          – szczegóły załadowanego modelu
-  GET  /poller/status                       – status pollera MailHog
+  GET  /health                              - status agenta i modelu
+  GET  /model/info                          - szczegóły załadowanego modelu
+  GET  /poller/status                       - status pollera MailHog
 
-  POST /predict                             – klasyfikuj (JSON: sender/subject/body)
-  POST /predict/raw                         – klasyfikuj surowy .eml (JSON: raw_eml)
+  POST /predict                             - klasyfikuj (JSON: sender/subject/body)
+  POST /predict/raw                         - klasyfikuj surowy .eml (JSON: raw_eml)
 
-  POST /ingest/mailhog?clear_after=false    – pobierz z MailHog i klasyfikuj
-  POST /ingest/campaign/{name}             – klasyfikuj z data/raw/{name}/
-  DELETE /ingest/mailhog/purge             – wyczyść inbox MailHog
+  POST /ingest/mailhog?clear_after=false    - pobierz z MailHog i klasyfikuj
+  POST /ingest/campaign/{name}             - klasyfikuj z data/raw/{name}/
+  DELETE /ingest/mailhog/purge             - wyczyść inbox MailHog
 
-  GET  /results                             – lista predykcji (filtry: label, campaign)
-  GET  /results/stats                       – zagregowane statystyki
-  GET  /results/{id}                        – szczegóły predykcji
-  GET  /results/campaign/{name}            – predykcje danej kampanii
+  GET  /results                             - lista predykcji (filtry: label, campaign)
+  GET  /results/stats                       - zagregowane statystyki
+  GET  /results/{id}                        - szczegóły predykcji
+  GET  /results/campaign/{name}            - predykcje danej kampanii
 
 ================================================================================
   UWAGA PRAWNA I ETYCZNA
