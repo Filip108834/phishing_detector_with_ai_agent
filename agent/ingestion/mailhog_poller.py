@@ -83,7 +83,7 @@ class MailHogPoller:
 
     async def _poll_once(self) -> None:
         """Jednorazowe sprawdzenie MailHog i klasyfikacja nowych wiadomości."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         # Wywołanie synchronicznego klienta przez executor (nie blokuje event loop)
         messages = await loop.run_in_executor(None, self._fetch_messages)

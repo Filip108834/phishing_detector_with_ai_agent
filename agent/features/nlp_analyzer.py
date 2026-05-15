@@ -17,7 +17,6 @@ Instalacja modelu:
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -25,19 +24,14 @@ logger = logging.getLogger(__name__)
 # Lazy loading modelu spaCy
 # ---------------------------------------------------------------------------
 
-_nlp = None          # globalny singleton modelu
-_spacy_ok = False    # czy model udało się załadować
+_nlp = None           # globalny singleton modelu
+_load_attempted = False   # czy już próbowaliśmy załadować (niezależnie od wyniku)
 
 
 def _get_nlp():
     """Ładuje model spaCy przy pierwszym wywołaniu; cache'uje wynik."""
-    global _nlp, _spacy_ok
-    # Zwróć wynik z cache jeśli już próbowaliśmy załadować model
-    # (niezależnie od tego czy się udało, czy nie).
-    # Poprzednia wersja: `_nlp is not None or _spacy_ok is False and _nlp is None`
-    # - przez pierwszeństwo `and` > `or` warunek był True przy pierwszym wywołaniu
-    # (_spacy_ok=False, _nlp=None), więc model nigdy nie był ładowany.
-    if _nlp is not None or _spacy_ok is False:
+    global _nlp, _load_attempted
+    if _load_attempted:
         return _nlp
 
     try:
@@ -51,17 +45,16 @@ def _get_nlp():
         # Dodaj sentencizer jako alternatywę dla parsera
         if "senter" not in _nlp.pipe_names:
             _nlp.add_pipe("sentencizer")
-        _spacy_ok = True
         logger.info("spaCy 'en_core_web_sm' załadowany. Pipes: %s", _nlp.pipe_names)
     except OSError:
         logger.warning(
             "Model spaCy 'en_core_web_sm' nie jest zainstalowany. "
             "Uruchom: python -m spacy download en_core_web_sm"
         )
-        _spacy_ok = False
     except ImportError:
         logger.warning("spaCy nie jest zainstalowany. Uruchom: pip install spacy")
-        _spacy_ok = False
+    finally:
+        _load_attempted = True
 
     return _nlp
 

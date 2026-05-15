@@ -91,12 +91,15 @@
   SMTP_HOST=localhost
   SMTP_PORT=1025
 
-  PHISHING_THRESHOLD=0.5
   MODEL_PATH=models/classifier.joblib
+  PHISHING_THRESHOLD=0.5
   MAILHOG_POLLER_ENABLED=true
   MAILHOG_POLL_INTERVAL=15
-  TZ=Europe/Warsaw
   -----------------------------------------------------------------------
+
+[ UWAGA ]
+  TZ=Europe/Warsaw jest ustawiane bezpośrednio w docker-compose.yml
+  i NIE musi być w pliku .env.
 
 [ UWAGA ]
   Plik .env NIE jest commitowany do gita (jest w .gitignore).
@@ -198,9 +201,15 @@
     data/datasets/spamassassin/spam/
 
 [ UWAGA ]
-  Dataset Enron wymaga ręcznego pobrania (ok. 1.7 GB):
-    1. Pobierz: https://www.cs.cmu.edu/~./enron/enron_mail_20150507.tar.gz
-    2. Wypakuj do katalogu: data/datasets/enron/
+  Dataset Enron wymaga ręcznego pobrania przez Kaggle CLI (ok. 430 MB skompresowany):
+    1. pip install kaggle
+    2. Skonfiguruj token API (kaggle.com -> Account -> Create New Token):
+         mkdir %USERPROFILE%\.kaggle  &&  copy kaggle.json %USERPROFILE%\.kaggle\
+    3. kaggle datasets download -d wcukierski/enron-email-dataset -p data/datasets/
+    4. cd data/datasets && tar -xf enron-email-dataset.zip -C enron/
+       (Plik docelowy: data/datasets/enron/emails.csv)
+
+  Szczegółowa instrukcja: scripts/fetch_datasets.py (stała ENRON_INSTRUCTIONS)
 
   Bez Enrona model będzie trenowany tylko na SpamAssassin.
   Możesz pominąć Enrona - model nadal będzie działać.

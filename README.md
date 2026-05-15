@@ -315,6 +315,7 @@ curl http://localhost:8000/results/stats
 | `GET` | `/results` | Lista predykcji (filtrowanie po kampanii) |
 | `GET` | `/results/stats` | Agregowane statystyki wszystkich predykcji |
 | `GET` | `/results/{id}` | Szczegóły pojedynczej predykcji |
+| `GET` | `/results/campaign/{name}` | Wszystkie predykcje dla danej kampanii |
 | `POST` | `/ingest/campaign/{name}` | Ingestion kampanii z data/raw/ |
 | `POST` | `/ingest/mailhog` | Ingestion aktualnych wiadomości z MailHog |
 | `DELETE` | `/ingest/mailhog/purge` | Czyszczenie skrzynki MailHog |

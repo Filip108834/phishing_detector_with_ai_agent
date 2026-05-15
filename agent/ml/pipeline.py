@@ -19,6 +19,7 @@ Dostępne warianty klasyfikatora (argument `model_name`):
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -239,7 +240,8 @@ def predict_email(pipeline: Pipeline, parsed: ParsedEmail) -> tuple[str, float, 
 
     proba = pipeline.predict_proba(df)[0]
     score = float(proba[1])
-    label = "phishing" if score >= 0.5 else "legit"
+    threshold = float(os.getenv("PHISHING_THRESHOLD", "0.5"))
+    label = "phishing" if score >= threshold else "legit"
 
     reasons = _explain(feats, score)
     return label, score, reasons
@@ -272,7 +274,8 @@ def _explain(feats: dict, score: float) -> list[str]:
         reasons.append("URL zawiera znak @ (technika maskowania domeny).")
 
     if not reasons:
-        if score >= 0.5:
+        threshold = float(os.getenv("PHISHING_THRESHOLD", "0.5"))
+        if score >= threshold:
             reasons.append("Model ML zaklasyfikował jako phishing (sygnały tekstowe).")
         else:
             reasons.append("Brak wyraźnych sygnałów phishingu.")

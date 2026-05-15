@@ -8,6 +8,7 @@ Endpointy:
 """
 from __future__ import annotations
 
+import os
 import re
 from typing import Optional
 
@@ -57,7 +58,7 @@ def predict(payload: PredictRequest) -> PredictResponse:
         urls=payload.urls,
         headers=payload.headers,
     )
-    return _classify_and_save(parsed, snippet=(payload.body or "")[:1000])
+    return _classify_and_save(parsed)
 
 
 @router.post("/predict/raw", response_model=PredictResponse)
@@ -67,8 +68,7 @@ def predict_raw(payload: PredictRawRequest) -> PredictResponse:
         parsed = ParsedEmail.from_string(payload.raw_eml)
     except Exception as e:
         raise HTTPException(status_code=422, detail=f"Błąd parsowania MIME: {e}")
-    snippet = (parsed.plain_text or parsed.html_text or "")[:1000]
-    return _classify_and_save(parsed, snippet=snippet)
+    return _classify_and_save(parsed)
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +87,8 @@ def classify_parsed(parsed: ParsedEmail, campaign: Optional[str] = None) -> dict
         model_used = "ml"
     else:
         score, reasons = _heuristic_score(parsed)
-        label = "phishing" if score >= 0.5 else "legit"
+        threshold = float(os.getenv("PHISHING_THRESHOLD", "0.5"))
+        label = "phishing" if score >= threshold else "legit"
         model_used = "heuristic"
 
     snippet = (parsed.plain_text or parsed.html_text or "")[:1000]
@@ -102,7 +103,7 @@ def classify_parsed(parsed: ParsedEmail, campaign: Optional[str] = None) -> dict
     }
 
 
-def _classify_and_save(parsed: ParsedEmail, snippet: str) -> PredictResponse:
+def _classify_and_save(parsed: ParsedEmail) -> PredictResponse:
     result = classify_parsed(parsed)
     return PredictResponse(**result)
 

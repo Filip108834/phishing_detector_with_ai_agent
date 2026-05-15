@@ -14,7 +14,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import func
 
-from agent.api.schemas import ModelInfoResponse, ResultItem, ResultListResponse, StatsResponse
+from agent.api.schemas import ResultItem, ResultListResponse, StatsResponse
 from agent.db import Prediction, SessionLocal
 
 router = APIRouter(prefix="/results", tags=["results"])

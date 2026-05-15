@@ -38,9 +38,9 @@ _POLISH_STOPWORDS = frozenset([
     "i", "w", "z", "na", "do", "się", "nie", "to", "że", "a", "jak",
     "o", "ale", "po", "tak", "jest", "co", "ze", "już", "czy", "przez",
     "jego", "jej", "ich", "ten", "ta", "te", "tego", "tej", "tych",
-    "być", "mieć", "się", "pan", "pani", "więc", "oraz", "też", "tylko",
-    "może", "tu", "tu", "tu", "go", "mu", "ci", "im", "nas", "was",
-    "pan", "pani", "który", "która", "które", "który", "lecz", "lub",
+    "być", "mieć", "pan", "pani", "więc", "oraz", "też", "tylko",
+    "może", "tu", "go", "mu", "ci", "im", "nas", "was",
+    "który", "która", "które", "lecz", "lub",
 ])
 
 # ---------------------------------------------------------------------------
