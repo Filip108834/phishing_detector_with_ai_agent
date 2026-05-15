@@ -320,9 +320,10 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     ))
     print(f"    [+] Profil SMTP ID={smtp_id}")
 
-    # 2. Szablon phishingowy
+    # 2. Szablon phishingowy - unikalna nazwa per kampania, aby uniknąć kolizji
+    tpl_name = f"{campaign_name}_{tpl_data['name']}"
     tpl_id = gophish.create_template(EmailTemplate(
-        name=tpl_data["name"],
+        name=tpl_name,
         subject=tpl_data["subject"],
         html=tpl_data["html"],
         text=tpl_data["text"],
@@ -348,7 +349,7 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     # 5. Kampania
     campaign_id = gophish.create_campaign(Campaign(
         name=campaign_name,
-        template_name=tpl_data["name"],
+        template_name=tpl_name,
         page_name=f"{campaign_name}_page",
         smtp_name=f"{campaign_name}_smtp",
         group_names=[f"{campaign_name}_targets"],

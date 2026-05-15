@@ -30,6 +30,40 @@ RAW_DATA_DIR = Path("data/raw")
 # MailHog ingestion
 # ---------------------------------------------------------------------------
 
+def _mailhog_fetch_all(mailhog_url: str) -> list[dict]:
+    """Pobiera wszystkie wiadomości z MailHog i zwraca listę dict {msg_id, raw_mime}."""
+    import requests as _req
+
+    base = mailhog_url.rstrip("/")
+    messages: list[dict] = []
+    start = 0
+    while True:
+        r = _req.get(f"{base}/api/v2/messages", params={"start": start, "limit": 50}, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        items = data.get("items", [])
+        for item in items:
+            msg_id = item.get("ID", "")
+            headers: dict = item.get("Content", {}).get("Headers", {})
+            body: str = item.get("Content", {}).get("Body", "")
+            raw_parts: list[str] = []
+            for key, vals in headers.items():
+                for v in vals:
+                    raw_parts.append(f"{key}: {v}")
+            raw_parts.append("")
+            raw_parts.append(body)
+            messages.append({"msg_id": msg_id, "raw_mime": "\r\n".join(raw_parts)})
+        if len(items) < 50:
+            break
+        start += len(items)
+    return messages
+
+
+def _mailhog_delete_all(mailhog_url: str) -> None:
+    import requests as _req
+    _req.delete(f"{mailhog_url.rstrip('/')}/api/v1/messages", timeout=10).raise_for_status()
+
+
 @router.post("/mailhog", response_model=IngestMailhogResponse)
 def ingest_mailhog(clear_after: bool = False) -> IngestMailhogResponse:
     """
@@ -38,13 +72,10 @@ def ingest_mailhog(clear_after: bool = False) -> IngestMailhogResponse:
     Args:
         clear_after: jeśli True, czyści inbox MailHog po przetworzeniu
     """
-    from simulation.mailhog_client import MailHogClient
-
-    mailhog_url = os.getenv("MAILHOG_API_URL", "http://localhost:8025")
-    client = MailHogClient(mailhog_url)
+    mailhog_url = os.getenv("MAILHOG_API_URL", "http://mailhog:8025")
 
     try:
-        messages = client.fetch_all()
+        messages = _mailhog_fetch_all(mailhog_url)
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Błąd połączenia z MailHog: {e}")
 
@@ -53,7 +84,7 @@ def ingest_mailhog(clear_after: bool = False) -> IngestMailhogResponse:
 
     for msg in messages:
         try:
-            parsed = ParsedEmail.from_string(msg.raw_mime)
+            parsed = ParsedEmail.from_string(msg["raw_mime"])
             result = classify_parsed(parsed, campaign="mailhog_ingest")
             classified += 1
             if result["label"] == "phishing":
@@ -61,12 +92,12 @@ def ingest_mailhog(clear_after: bool = False) -> IngestMailhogResponse:
             else:
                 legit += 1
         except Exception as e:
-            logger.warning("Błąd klasyfikacji wiadomości %s: %s", msg.msg_id, e)
+            logger.warning("Błąd klasyfikacji wiadomości %s: %s", msg.get("msg_id"), e)
             errors += 1
 
     if clear_after:
         try:
-            client.delete_all()
+            _mailhog_delete_all(mailhog_url)
             logger.info("Inbox MailHog wyczyszczony po ingestion.")
         except Exception as e:
             logger.warning("Nie udało się wyczyścić MailHog: %s", e)
@@ -86,12 +117,9 @@ def ingest_mailhog(clear_after: bool = False) -> IngestMailhogResponse:
 @router.delete("/mailhog/purge")
 def purge_mailhog() -> dict:
     """Czyści wszystkie wiadomości z inbox MailHog."""
-    from simulation.mailhog_client import MailHogClient
-
-    mailhog_url = os.getenv("MAILHOG_API_URL", "http://localhost:8025")
-    client = MailHogClient(mailhog_url)
+    mailhog_url = os.getenv("MAILHOG_API_URL", "http://mailhog:8025")
     try:
-        client.delete_all()
+        _mailhog_delete_all(mailhog_url)
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Błąd MailHog: {e}")
     return {"status": "ok", "message": "Inbox MailHog wyczyszczony."}

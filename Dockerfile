@@ -29,7 +29,8 @@ FROM python:3.11-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/opt/venv/bin:$PATH" \
+    NLTK_DATA=/usr/local/share/nltk_data
 
 # Runtime libs dla lxml (bez build tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -39,6 +40,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Venv + modele NLP z buildera
 COPY --from=builder /opt/venv /opt/venv
+# Dane NLTK pobrane w builderze (punkt, stopwords) - dostępne dla runtime bez pobierania
+COPY --from=builder /root/nltk_data /usr/local/share/nltk_data
 
 # Użytkownik bez uprawnień roota
 RUN groupadd --system appgroup \

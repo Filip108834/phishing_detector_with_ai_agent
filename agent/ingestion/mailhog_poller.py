@@ -108,10 +108,38 @@ class MailHogPoller:
     # ------------------------------------------------------------------
 
     def _fetch_messages(self):
-        """Pobiera wiadomości z MailHog (sync)."""
-        from simulation.mailhog_client import MailHogClient
-        client = MailHogClient(self.mailhog_url)
-        return client.fetch_all()
+        """Pobiera wiadomości z MailHog (sync) bez zależności od simulation."""
+        import requests
+        from dataclasses import dataclass
+
+        @dataclass
+        class _Msg:
+            msg_id: str
+            raw_mime: str
+
+        base = self.mailhog_url.rstrip("/")
+        try:
+            r = requests.get(f"{base}/api/v2/messages", params={"start": 0, "limit": 50}, timeout=10)
+            r.raise_for_status()
+            data = r.json()
+        except Exception as e:
+            logger.warning("Nie można pobrać wiadomości z MailHog: %s", e)
+            return []
+
+        msgs: list[_Msg] = []
+        for item in data.get("items", []):
+            msg_id = item.get("ID", "")
+            headers: dict = item.get("Content", {}).get("Headers", {})
+            body: str = item.get("Content", {}).get("Body", "")
+            raw_parts: list[str] = []
+            for key, values in headers.items():
+                for val in values:
+                    raw_parts.append(f"{key}: {val}")
+            raw_parts.append("")
+            raw_parts.append(body)
+            msgs.append(_Msg(msg_id=msg_id, raw_mime="\r\n".join(raw_parts)))
+
+        return msgs
 
     def _classify_one(self, msg) -> None:
         """Klasyfikuje pojedynczą wiadomość i zapisuje do DB (sync)."""
