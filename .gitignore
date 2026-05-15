@@ -1,0 +1,106 @@
+####################################
+# PYTHON
+####################################
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+####################################
+# JUPYTER
+####################################
+
+.ipynb_checkpoints/
+
+####################################
+# VS CODE
+####################################
+
+.vscode/*
+.history/
+# Wyjątek: ustawienia interpretera - przydatne dla całego projektu
+!.vscode/settings.json
+
+####################################
+# ENV / SECRETS
+####################################
+
+.env
+.env.*
+*.key
+*.pem
+# Wyjątek: szablon zmiennych (nie zawiera sekretów)
+!.env.example
+
+####################################
+# DATABASES
+####################################
+
+*.db
+*.sqlite3
+
+####################################
+# LOGS
+####################################
+
+*.log
+logs/
+
+####################################
+# DATASETS - ignoruj zawartość, śledź strukturę katalogów
+####################################
+
+data/raw/**
+!data/raw/.gitkeep
+
+data/processed/**
+!data/processed/.gitkeep
+
+data/datasets/**
+!data/datasets/.gitkeep
+
+data/tmp/
+data/generated/
+
+####################################
+# MODEL FILES - ignoruj binaria, śledź katalog
+####################################
+
+models/**
+!models/.gitkeep
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.onnx
+
+####################################
+# DOCKER
+####################################
+
+docker-compose.override.yml
+
+####################################
+# SYSTEM
+####################################
+
+.DS_Store
+Thumbs.db

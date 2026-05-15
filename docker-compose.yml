@@ -1,0 +1,101 @@
+services:
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
+    networks:
+      - lab_internal
+      - host_access
+    restart: unless-stopped
+
+  gophish:
+    image: gophish/gophish:latest
+    container_name: gophish
+    ports:
+      - "127.0.0.1:3333:3333"   # panel admin
+      - "127.0.0.1:8080:8080"   # serwer phishingowy
+    environment:
+      - TZ=Europe/Warsaw
+    volumes:
+      # własny config: wyłączone TLS, znane porty, SQLite w wolumenie
+      - ./docker/gophish/config.json:/opt/gophish/config.json:ro
+      - gophish_data:/opt/gophish
+    networks:
+      - lab_internal
+      - host_access
+    depends_on:
+      - mailhog
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: thesis_db
+    environment:
+      POSTGRES_USER: thesis
+      POSTGRES_PASSWORD: thesis
+      POSTGRES_DB: phishing_lab
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - db_internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thesis -d phishing_lab || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  ai-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_agent
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      DATABASE_URL: postgresql+psycopg://thesis:thesis@db:5432/phishing_lab
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      MAILHOG_API_URL: http://mailhog:8025
+      GOPHISH_API_URL: http://gophish:3333
+      TZ: Europe/Warsaw
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - lab_internal
+      - db_internal
+      - host_access
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+      gophish:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+networks:
+  lab_internal:
+    driver: bridge
+    internal: true
+  db_internal:
+    driver: bridge
+    internal: true
+  host_access:
+    driver: bridge
+
+volumes:
+  db_data:
+  gophish_data:
