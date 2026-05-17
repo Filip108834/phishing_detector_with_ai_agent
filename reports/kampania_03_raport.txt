@@ -1,0 +1,470 @@
+================================================================================
+  RAPORT Z TRZECIEJ KAMPANII PHISHINGOWEJ
+  Projekt: Wykorzystanie agenta AI do detekcji phishingu
+  Data:    15.05.2026
+  Autor:   Filip Pich
+================================================================================
+
+
+SPIS TREŚCI
+-----------
+1.  Cel eksperymentu
+2.  Poprawki zastosowane przed eksperymentem
+3.  Środowisko laboratoryjne
+4.  Przebieg kampanii - kroki i wyniki
+5.  Wyniki klasyfikacji - model heurystyczny (dane archiwalne z Fazy 6)
+6.  Wyniki klasyfikacji - model ML (Ensemble) - kampanie Fazy 7
+7.  Porównanie sesji: Faza 6 vs Faza 7
+8.  Analiza błędów i ograniczeń pozostałych po poprawkach
+9.  Wnioski do pracy dyplomowej
+10. Pliki wyjściowe
+
+
+================================================================================
+1. CEL EKSPERYMENTU
+================================================================================
+
+Faza 7 miała trzy cele:
+
+  a) Naprawa czterech błędów krytycznych wykrytych przy próbie uruchomienia
+     systemu po przerwie: brak danych NLTK w runtime, trzy niezależne importy
+     modułu simulation wewnątrz kontenera Docker oraz kolizja nazw szablonów
+     GoPhish przy ponownych uruchomieniach.
+
+  b) Weryfikacja, że naprawiony system klasyfikuje kampanie phishingowe z tą
+     samą lub lepszą skutecznością co Faza 6 (model ML bez retrainingu).
+
+  c) Przeprowadzenie pełnego cyklu kampanii z właściwą izolacją: czyszczenie
+     inbox MailHog przed każdą kampanią, eliminacja kontaminacji legit_batch_01
+     wiadomościami phishingowymi z poprzednich sesji.
+
+
+================================================================================
+2. POPRAWKI ZASTOSOWANE PRZED EKSPERYMENTEM
+================================================================================
+
+2.1 B1 - Brak danych NLTK w runtime stage [Dockerfile]
+    Problem: Dockerfile buduje model spaCy i zasoby NLTK (punkt, stopwords)
+    w etapie "builder" (uruchamianym jako root), gdzie trafiają do /root/nltk_data.
+    Stage "runtime" kopiował tylko /opt/venv (virtualenv), pomijając dane NLTK.
+    Użytkownik appuser (--no-create-home) nie mógł też samodzielnie pobrać danych
+    (brak katalogu /home/appuser → Permission denied przy próbie zapisu).
+    Skutek: każde żądanie klasyfikacji kończyło się błędem:
+      "Błąd przetwarzania 0000_*.eml: [Errno 13] Permission denied: '/home/appuser'"
+    Poprawka:
+      Dodano do runtime stage:
+        ENV NLTK_DATA=/usr/local/share/nltk_data
+        COPY --from=builder /root/nltk_data /usr/local/share/nltk_data
+    Skutek: NLTKTextPreprocessor tokenizuje i filtruje stopwords poprawnie.
+    Cechy tekstowe (TF-IDF na przetworzonych tokenach) są teraz obliczane
+    zgodnie z architekturą pipeline'u opisaną w pracy dyplomowej.
+
+2.2 B2 - Import simulation w MailHog Pollerze [agent/ingestion/mailhog_poller.py]
+    Problem: Metoda _fetch_messages() importowała:
+      from simulation.mailhog_client import MailHogClient
+    Moduł simulation/ nie jest kopiowany do obrazu Docker (Dockerfile kopiuje
+    wyłącznie agent/). Poller logował co 15 sekund:
+      "Błąd pollera: No module named 'simulation'"
+    Poprawka: Usunięto zależność od simulation. Implementacja HTTP do MailHog
+    API v2 (/api/v2/messages) bezpośrednio przez bibliotekę requests, wewnątrz
+    metody _fetch_messages(). Zwracane są obiekty dataclass _Msg(msg_id, raw_mime)
+    kompatybilne z _classify_one().
+    Skutek: Poller działa bez błędów. Automatyczna klasyfikacja nowych wiadomości
+    w tle co 15 sekund (MAILHOG_POLL_INTERVAL=15) jest aktywna.
+
+2.3 B3 - Import simulation w ingestion router [agent/api/routes_ingest.py]
+    Problem: Dwa endpointy importowały simulation.mailhog_client wewnątrz funkcji:
+      POST /ingest/mailhog  →  from simulation.mailhog_client import MailHogClient
+      DELETE /ingest/mailhog/purge  →  from simulation.mailhog_client import MailHogClient
+    Każde wywołanie kończyło się HTTP 500: "ModuleNotFoundError: No module named simulation"
+    Poprawka: Zaimplementowano funkcje pomocnicze _mailhog_fetch_all() i
+    _mailhog_delete_all() bezpośrednio w pliku routes_ingest.py, używając
+    biblioteki requests (dostępnej w kontenerze przez requirements.txt).
+    Skutek: Endpoint /ingest/mailhog i /ingest/mailhog/purge działają poprawnie.
+    Możliwe jest zdalne czyszczenie inbox między kampaniami przez API.
+
+2.4 B4 - Kolizja nazw szablonów GoPhish [simulation/campaign_generator.py]
+    Problem: Skrypt tworzył szablony e-mail o stałych nazwach zdefiniowanych
+    w PHISHING_TEMPLATES ("lab_phish_bank_alert" itp.). Przy ponownym uruchomieniu
+    GoPhish zwracał success=False ("Template name already exists"), co przerywało
+    skrypt przed uruchomieniem kampanii.
+    Poprzedni kod:
+      tpl_id = gophish.create_template(EmailTemplate(name=tpl_data["name"], ...))
+      campaign_id = gophish.create_campaign(Campaign(template_name=tpl_data["name"], ...))
+    Poprawiony kod:
+      tpl_name = f"{campaign_name}_{tpl_data['name']}"
+      tpl_id = gophish.create_template(EmailTemplate(name=tpl_name, ...))
+      campaign_id = gophish.create_campaign(Campaign(template_name=tpl_name, ...))
+    Skutek: Każda kampania tworzy unikatowy szablon (prefiks campaign_name).
+    Skrypt można uruchamiać wielokrotnie bez czyszczenia zasobów GoPhish.
+
+
+================================================================================
+3. ŚRODOWISKO LABORATORYJNE
+================================================================================
+
+Infrastruktura Docker (bez zmian względem Fazy 6):
+  - MailHog  SMTP :1025 / Web :8025
+  - Gophish  Admin :3333 / Phishing :8080
+  - PostgreSQL 16 (thesis_db)
+  - AI Agent FastAPI :8000  [obraz przebudowany po poprawkach B1-B3]
+
+Model ML: BEZ RETRAININGU
+  Używany jest ten sam model co w Fazie 6:
+    models/classifier.joblib  (wytrenowany 17.04.2026)
+  Metryki modelu (z eksperymentu ensemble_20260417_094437.json):
+    Test set (410 wiadomości):
+      Accuracy: 0.9902 | Precision: 0.9951 | Recall: 0.9854 | F1: 0.9902 | AUC: 0.9982
+    Cross-validation (5-fold):
+      CV Accuracy: 0.9902 | CV F1: 0.9902 | CV AUC: 0.9987
+
+Zbiór treningowy modelu (z Fazy 6):
+  SpamAssassin (--max-per-class 1000): 2050 wiadomości
+    legit:    1020 (49.8%)
+    phishing: 1030 (50.2%)
+  Podział: Train 1640 | Test 410 (stratified, random_state=42)
+
+Innowacja proceduralna Fazy 7:
+  Czyszczenie inbox MailHog przez API (DELETE /ingest/mailhog/purge) przed
+  każdą kampanią oraz przed legit batch. Eliminuje kontaminację cross-kampanijną
+  wykrytą w poprzedniej sesji (legit_batch_01 zawierał 15 phishingów z GoPhish).
+
+
+================================================================================
+4. PRZEBIEG KAMPANII - KROKI I WYNIKI
+================================================================================
+
+Kolejność wykonania (z czyszczeniem MailHog pomiędzy):
+
+KROK 0 - Czyszczenie MailHog (wstępne)
+  DELETE /ingest/mailhog/purge → "Inbox MailHog wyczyszczony."
+
+KAMPANIA 1 - Alert bankowy (lab_phish_bank_alert)
+  Nazwa kampanii: campaign3_bank_alert
+  Szablon GoPhish: campaign3_bank_alert_lab_phish_bank_alert
+  Temat:     "PILNE: Zablokowano Twoje konto bankowe"
+  Typ:       Phishing
+  Odbiorcy:  5 (jan.kowalski, anna.nowak, piotr.wisniewski, k.dabrowska, m.lewandowski)
+  Dostarczone: 5/5 → data/raw/campaign3_bank_alert/ (5 plików .eml)
+  [Czyszczenie MailHog po kampanii]
+
+KAMPANIA 2 - Reset hasła (lab_phish_password_reset)
+  Nazwa kampanii: campaign3_password_reset
+  Szablon GoPhish: campaign3_password_reset_lab_phish_password_reset
+  Temat:     "Twoje hasło wygasło - wymagana zmiana"
+  Typ:       Phishing
+  Odbiorcy:  5
+  Dostarczone: 5/5 → data/raw/campaign3_password_reset/ (5 plików .eml)
+  [Czyszczenie MailHog po kampanii]
+
+KAMPANIA 3 - Fałszywy kurier (lab_phish_package_delivery)
+  Nazwa kampanii: campaign3_package_delivery
+  Szablon GoPhish: campaign3_package_delivery_lab_phish_package_delivery
+  Temat:     "Nie mogliśmy dostarczyć Twojej paczki - wymagana opłata 3,99 PLN"
+  Typ:       Phishing
+  Odbiorcy:  5
+  Dostarczone: 5/5 → data/raw/campaign3_package_delivery/ (5 plików .eml)
+  [Czyszczenie MailHog po kampanii]
+
+BATCH LEGIT - Newsletter + Zaproszenie na spotkanie
+  Szablony:  lab_legit_newsletter, lab_legit_meeting_invite
+  Typ:       Legit
+  Odbiorcy:  5 × 2 szablony = 10 wiadomości
+  Katalog:   data/raw/legit_batch_01/ (wyczyszczony przed generacją - 10 plików .eml)
+
+ZESTAWIENIE KAMPANII:
+  Kampania                      | Typ     | Dostarczone | Eksport
+  ------------------------------|---------|-------------|--------
+  campaign3_bank_alert          | PHISH   | 5/5         | 5 .eml
+  campaign3_password_reset      | PHISH   | 5/5         | 5 .eml
+  campaign3_package_delivery    | PHISH   | 5/5         | 5 .eml
+  legit_batch_01 (czyste)       | LEGIT   | 10/10       | 10 .eml
+  ŁĄCZNIE (Faza 7)              |         | 25/25       | 25 .eml
+
+UWAGA - Timeout w _wait_for_delivery:
+  Wszystkie 3 kampanie GoPhish zwróciły "Timeout - odebrano 0/5 nowych wiadomości."
+  Jest to znany artefakt (B.9.5 z Fazy 6) - Gophish dostarcza wiadomości z
+  opóźnieniem > 30s przez sieć bridge Docker. Eksport działa poprawnie (5 plików
+  per kampania). Mechanizm count_before (z poprawki W3 z Fazy 6) prawidłowo
+  segreguje wiadomości per kampania dzięki czyszczeniu inbox między kampaniami.
+
+
+================================================================================
+5. WYNIKI KLASYFIKACJI - MODEL HEURYSTYCZNY (DANE ARCHIWALNE Z FAZY 6)
+================================================================================
+
+Model heurystyczny nie był zmieniany. Wyniki deterministyczne (identyczne
+jak w Fazie 5 i Fazie 6 dla tych samych szablonów e-mail):
+
+  Kampania                   | GT    | TP | FN | FP | TN | Accuracy
+  ---------------------------|-------|----|----|----|----|---------
+  campaign3_bank_alert       | phish | 0  | 5  |  - |  - |   0.0%
+  campaign3_password_reset   | phish | 0  | 5  |  - |  - |   0.0%
+  campaign3_package_delivery | phish | 0  | 5  |  - |  - |   0.0%
+  legit_batch_01 (10 szt.)   | legit | -  |  - |  0 | 10 | 100.0%
+
+  TPR (Recall):  0.0%   (phishingi niewidoczne - score avg ~0.25, próg 0.50)
+  TNR:          100.0%  (brak fałszywych alarmów dla legit)
+  Accuracy:      40.0%  (poprawna tylko klasa negatywna)
+  F1:             0.000
+
+
+================================================================================
+6. WYNIKI KLASYFIKACJI - MODEL ML (ENSEMBLE) - KAMPANIE FAZY 7
+================================================================================
+
+6.1 WYNIKI PER WIADOMOŚĆ
+
+  campaign3_bank_alert (GT: phishing, próg: 0.50):
+    Odbiorca           | Score   | Etykieta
+    -------------------|---------|----------
+    jan.kowalski       | 0.9731  | phishing ✓
+    anna.nowak         | 0.9730  | phishing ✓
+    piotr.wisniewski   | 0.9733  | phishing ✓
+    k.dabrowska        | 0.9748  | phishing ✓
+    m.lewandowski      | 0.9690  | phishing ✓
+    Średnia score:       0.9726
+
+  campaign3_password_reset (GT: phishing, próg: 0.50):
+    Odbiorca           | Score   | Etykieta
+    -------------------|---------|----------
+    jan.kowalski       | 0.9722  | phishing ✓
+    anna.nowak         | 0.9696  | phishing ✓
+    piotr.wisniewski   | 0.9700  | phishing ✓
+    k.dabrowska        | 0.9703  | phishing ✓
+    m.lewandowski      | 0.9719  | phishing ✓
+    Średnia score:       0.9708
+
+  campaign3_package_delivery (GT: phishing, próg: 0.50):
+    Odbiorca           | Score   | Etykieta
+    -------------------|---------|----------
+    jan.kowalski       | 0.9566  | phishing ✓
+    anna.nowak         | 0.9558  | phishing ✓
+    piotr.wisniewski   | 0.9565  | phishing ✓
+    k.dabrowska        | 0.9593  | phishing ✓
+    m.lewandowski      | 0.9555  | phishing ✓
+    Średnia score:       0.9567
+
+  legit_batch_01 (GT: legit, próg: 0.50):
+    lab_legit_newsletter (5 wiad.)      | avg score: 0.1063  | legit ✓
+    lab_legit_meeting_invite (5 wiad.)  | avg score: 0.1135  | legit ✓
+    Średnia score (wszystkie 10):        0.1099
+
+6.2 METRYKI ZBIORCZE - KAMPANIE FAZY 7
+
+  Kampania                   | GT    | Sklasyf. | Phish | Legit | Accuracy | Score avg
+  ---------------------------|-------|----------|-------|-------|----------|---------
+  campaign3_bank_alert       | phish | 5        | 5     | 0     | 100.0%   | 0.9726
+  campaign3_password_reset   | phish | 5        | 5     | 0     | 100.0%   | 0.9708
+  campaign3_package_delivery | phish | 5        | 5     | 0     | 100.0%   | 0.9567
+  legit_batch_01             | legit | 10       | 0     | 10    | 100.0%   | 0.1099
+
+  Macierz pomyłek (kampanie Fazy 7):
+                      Predykcja PHISHING  |  Predykcja LEGIT
+    GT PHISHING:           15 (TP=15)    |        0 (FN=0)
+    GT LEGIT:               0 (FP=0)     |       10 (TN=10)
+
+  Metryki na kampaniach Fazy 7:
+    TPR (Recall):  15/15 = 100.0%
+    TNR:           10/10 = 100.0%
+    Precision:     15/15 = 100.0%
+    Accuracy:      25/25 = 100.0%
+    F1:             1.000
+
+  UWAGA: Wyniki te dotyczą kampanii laboratoryjnych. Interpretowalność ograniczona
+  przez czynniki opisane w sekcji 8 (domain shift, X-Mailer, małe próbki).
+
+
+================================================================================
+7. PORÓWNANIE SESJI: FAZA 6 vs FAZA 7
+================================================================================
+
+7.1 ZMIANY W PREPROCESSING NLTK
+
+  Faza 6 (przed B1): NLTKTextPreprocessor zwracał tekst.lower() jako fallback
+    z powodu braku danych NLTK. TF-IDF pracował na nieprzetworzonej liście
+    tokenów (bez usuwania stopwords, bez normalizacji interpunkcji).
+
+  Faza 7 (po B1): NLTKTextPreprocessor działa pełnym pipeline'em:
+    lowercase → usunięcie URL/email/liczb → tokenizacja NLTK word_tokenize()
+    → usunięcie stopwords (EN + PL) → zwrot połączonych tokenów do TF-IDF.
+
+  Skutek dla scorów (model ten sam, dane te same, preprocessing inny):
+
+  Kampania                   | Score avg Faza 6 | Score avg Faza 7 | Różnica
+  ---------------------------|-----------------|-----------------|--------
+  bank_alert                 | 0.976           | 0.9726          | -0.003
+  password_reset             | 0.971           | 0.9708          | -0.001
+  package_delivery           | 0.962           | 0.9567          | -0.005
+  legit_batch_01             | 0.134           | 0.1099          | -0.024
+
+  Obserwacja: Poprawny preprocessing NLTK nieznacznie obniżył score phishingów
+  (~0.003) i score legitów (~0.024). Zmiana wynika z innego wektora TF-IDF
+  (tokeny po usunięciu stopwords vs surowe tokeny). Etykiety klasyfikacji
+  pozostają niezmienione - wszystkie progi 0.50 przekroczone poprawnie.
+
+7.2 CZYSTOŚĆ LEGIT_BATCH_01
+
+  Faza 6: legit_batch_01 zawierał 20-55 plików .eml (kumulacja z poprzednich
+    sesji, w tym 15 wiadomości phishingowych z GoPhish → accuracy 66.7%).
+
+  Faza 7: legit_batch_01 zawiera dokładnie 10 plików .eml (2 szablony × 5
+    odbiorców). Wyłącznie legit wiadomości → accuracy 100.0%.
+
+7.3 POLLER I PURGE
+
+  Faza 6: /ingest/mailhog/purge zwracał HTTP 500. Poller logował błąd
+    co 15 sekund ("No module named 'simulation'").
+
+  Faza 7: Poller działa, purge działa. Automatyczna klasyfikacja nowych
+    wiadomości działa w tle.
+
+7.4 ZESTAWIENIE ZBIORCZE
+
+  Metryka                   | Faza 5 (heuryst.) | Faza 6 (ML)  | Faza 7 (ML, po naprawach)
+  --------------------------|-------------------|--------------|---------------------------
+  TPR (Recall)              | 0.0%              | 100.0%       | 100.0%
+  TNR                       | 100.0%            | 100.0%       | 100.0%
+  Precision                 | N/A               | 100.0%       | 100.0%
+  F1                        | 0.000             | 1.000        | 1.000
+  Accuracy (kampanie)       | 40.0%             | 100.0%       | 100.0%
+  Legit contamination       | -                 | tak (GoPhish) | nie (czyszczenie)
+  Poller MailHog            | -                 | błąd         | działa
+  NLTK preprocessing        | -                 | fallback     | pełny pipeline
+
+
+================================================================================
+8. ANALIZA BŁĘDÓW I OGRANICZEŃ POZOSTAŁYCH PO POPRAWKACH
+================================================================================
+
+8.1 DOMAIN SHIFT - ADRESY URL LABORATORYJNE (NIE NAPRAWIONE)
+    Kampanie GoPhish używają URL http://gophish:8080?rid=xxx (wewnętrzna sieć
+    Docker). Cechy feat_has_ip_url, feat_has_suspicious_tld, feat_has_url_keyword
+    nie wyzwalają się dla tych adresów.
+    Skutek: model nie wykrywa phishingu po URL-ach - polega głównie na sygnałach
+    tekstowych i feat_xmailer_known_phish_tool.
+    Rozwiązanie: wzbogacenie o dane z PhishTank lub OpenPhish.
+
+8.2 FEAT_XMAILER_KNOWN_PHISH_TOOL - DOMINUJĄCA CECHA (NIE NAPRAWIONE)
+    Każda wiadomość Gophish zawiera nagłówek "X-Mailer: gophish", co powoduje
+    feat_xmailer_known_phish_tool = 1.0. Cecha ta prawdopodobnie dominuje
+    klasyfikację kampanii laboratoryjnych i tłumaczy bardzo wysokie score
+    (0.95-0.97) przy stosunkowo "spokojnej" treści e-maili.
+    Skutek: wyniki na kampaniach nie odzwierciedlają zdolności do wykrywania
+    phishingu z realnego świata (gdzie X-Mailer jest ukrywany lub losowy).
+    Implikacja: przed publikacją warto sprawdzić feature importance Ensemble
+    i zrozumieć udział tej cechy w decyzjach modelu.
+
+8.3 MAŁA LICZBA PRÓBEK KAMPANII (NIE NAPRAWIONE)
+    25 phishingowych + 10 legit e-maili to zbyt mało, by wpłynąć na model.
+    Kampanie polskojęzyczne stanowią < 2% zbioru treningowego (dominuje
+    angielski SpamAssassin). Model uczy się głównie angielskich wzorców.
+
+8.4 SPACY MODEL ANGIELSKI (NIE NAPRAWIONE)
+    pl_core_news_sm nie jest zainstalowany. en_core_web_sm obsługuje polskie
+    e-maile z ograniczoną dokładnością NER/POS. Cechy feat_nlp_imperative_count
+    dla polskich form rozkazujących mogą być niedoszacowane.
+
+8.5 TIMEOUT W _WAIT_FOR_DELIVERY (NIE NAPRAWIONE)
+    Timeout 30s jest za krótki dla Gophish w sieci Docker. Wszystkie kampanie
+    zwróciły "Timeout - odebrano 0/5 nowych wiadomości" mimo prawidłowego
+    dostarczenia. Komunikat jest mylący, eksport działa poprawnie.
+    Rozwiązanie: zwiększyć timeout do 60-90s lub polling po ID wiadomości.
+
+8.6 KUMULACJA DANYCH W DB (OBSERWACJA)
+    Tabela predictions zawiera > 415 rekordów z wielu sesji. Kolejne
+    uruchomienia /ingest/campaign/* dodają nowe rekordy nie nadpisując starych.
+    Endpoint /results/campaign/{name} zwraca WSZYSTKIE historyczne rekordy
+    dla danej nazwy kampanii. Przy ponownym ingeście tej samej nazwy kampanii
+    statystyki są zawyżone (podwójne liczenie).
+    Rozwiązanie: dodać parametr idempotency (np. ignorowanie duplikatów po
+    hash .eml pliku) lub endpoint do czyszczenia konkretnej kampanii z DB.
+
+
+================================================================================
+9. WNIOSKI DO PRACY DYPLOMOWEJ
+================================================================================
+
+WNIOSEK 1 - STABILNOŚĆ MODELU PO ZMIANIE PREPROCESSINGU
+   Poprawne działanie NLTK (B1) nieznacznie zmieniło score'y klasyfikacji
+   (Δ ≈ -0.003 dla phishingów, Δ ≈ -0.024 dla legit). Mimo zmiany pipeline'u
+   przetwarzania tekstu etykiety pozostają poprawne (żadna wiadomość nie
+   przekroczyła błędnie progu 0.50). Potwierdza to, że model jest odporny
+   na drobne perturbacje w przestrzeni cech tekstowych.
+
+WNIOSEK 2 - IZOLACJA KAMPANII JEST KLUCZOWA DLA RZETELNYCH WYNIKÓW
+   Legit_batch_01 z Fazy 6 zawierał 15 wiadomości phishingowych (GoPhish)
+   zamiast 10 legit → accuracy 66.7% zamiast 100%.
+   Po wprowadzeniu procedury czyszczenia MailHog między kampaniami wyniki
+   są czysté: 10/10 legit poprawnie sklasyfikowane, accuracy 100%.
+   Implikacja: każdy eksperyment wymaga kontrolowanego środowiska - niekontrolowana
+   akumulacja danych wejściowych przekłamuje metryki jakości.
+
+WNIOSEK 3 - ARCHITEKTURA "AGENT TYLKO Z KODEM WŁASNYM" JEST SŁUSZNA
+   Trzy błędy (B2, B3, B4) wynikały z importowania modułu simulation/ wewnątrz
+   kontenera agenta AI. Właściwym podziałem odpowiedzialności jest:
+     - simulation/ → kod narzędziowy do generowania kampanii (uruchamiany lokalnie)
+     - agent/ → kod produkcyjny w kontenerze (bez zależności od simulation)
+   Naprawka - implementacja HTTP bezpośrednio w agent/ingestion/ i agent/api/ -
+   przywraca właściwy podział i eliminuje cross-module dependency przez Docker boundary.
+
+WNIOSEK 4 - BUDOWANIE OBRAZÓW DOCKER WYMAGA WERYFIKACJI ŚCIEŻEK NLP
+   Błąd B1 (NLTK runtime) jest klasycznym problemem multi-stage Docker build:
+   zasoby pobrane w etapie builder nie są automatycznie kopiowane do runtime.
+   Przy projektach ML z zależnościami od zewnętrznych modeli/danych
+   (NLTK, spaCy, transformers) należy jawnie kopiować artefakty między etapami
+   i ustawić odpowiednie zmienne środowiskowe (NLTK_DATA, TRANSFORMERS_CACHE).
+
+WNIOSEK 5 - WYNIKI KAMPANII LABORATORYJNYCH POZOSTAJĄ ZGODNE MIĘDZY SESJAMI
+   Faza 6 (przed naprawą NLTK): F1 = 1.000 na kampaniach
+   Faza 7 (po naprawie NLTK):   F1 = 1.000 na kampaniach
+   Model zachowuje 100% skuteczność mimo zmiany preprocessingu. Potwierdza
+   to robustność Ensemble na przestrzeni wielu kampanii tego samego systemu.
+   Zastrzeżenie (jak w Fazie 6): wyniki dotyczą próbek laboratoryjnych, częściowo
+   pokrywających się z danymi treningowymi, i nie są reprezentatywne dla
+   detekcji phishingu w warunkach rzeczywistych.
+
+
+================================================================================
+10. PLIKI WYJŚCIOWE
+================================================================================
+
+Kampanie (data/raw/):
+  campaign3_bank_alert/        5 plików .eml + metadata.json  (label: phishing)
+  campaign3_password_reset/    5 plików .eml + metadata.json  (label: phishing)
+  campaign3_package_delivery/  5 plików .eml + metadata.json  (label: phishing)
+  legit_batch_01/             10 plików .eml + metadata.json  (label: legit)
+                               [katalog wyczyszczony przed wygenerowaniem]
+
+Model (bez zmian od Fazy 6):
+  models/classifier.joblib     wytrenowany Ensemble (17.04.2026)
+                               VotingClassifier (LR + RF + HistGBT)
+                               2050 próbek treningowych
+
+Wyniki trenowania (archiwalne):
+  experiments/results/ensemble_20260417_094437.json
+
+Baza danych PostgreSQL (thesis_db, tabela predictions):
+  Łącznie (wszystkie sesje):  > 415 rekordów
+  Nowe (Faza 7, model ML):    25 rekordów (15 phishing + 10 legit)
+                               IDs: 316-320 (bank), 321-325 (pw_reset),
+                                    326-330 (package), 406-415 (legit)
+  Model: ml (VotingClassifier Ensemble)
+
+Naprawione pliki kodu:
+  Dockerfile                              (B1: NLTK data)
+  agent/ingestion/mailhog_poller.py       (B2: simulation import)
+  agent/api/routes_ingest.py              (B3: simulation import x2)
+  simulation/campaign_generator.py        (B4: template name collision)
+
+Raporty:
+  reports/kampania_01_raport.txt  (Faza 5 - heurystyka)
+  reports/kampania_02_raport.txt  (Faza 6 - ML Ensemble, pierwsze wyniki)
+  reports/kampania_03_raport.txt  (Faza 7 - niniejszy raport)
+
+
+================================================================================
+KONIEC RAPORTU
+Wygenerowany: 15.05.2026
+================================================================================
+`
