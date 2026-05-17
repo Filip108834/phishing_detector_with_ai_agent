@@ -1,14 +1,12 @@
-"""
+﻿"""
 Testy integracyjne: agent/ml/pipeline.py
 
 Weryfikują pełny cykl ML:
-    build_pipeline → train → predict → evaluate → save → load
+    build_pipeline -> train -> predict -> evaluate -> save -> load
 
 Używa minimalnego zbioru danych (20 próbek) i prostego modelu "lr"
 (LogisticRegression), żeby testy były szybkie.
 """
-from __future__ import annotations
-
 import pandas as pd
 import pytest
 
@@ -17,9 +15,9 @@ from agent.ingestion.email_parser import ParsedEmail
 from agent.ml import pipeline as ml
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Helpersy
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 PHISHING_TEXTS = [
     "URGENT: verify your account login password suspended click now",
@@ -73,9 +71,9 @@ def _make_feature_df(phishing_texts: list[str], legit_texts: list[str]):
     return X, y
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: budowanie pipeline'u
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestBuildPipeline:
     def test_build_returns_pipeline(self):
@@ -100,9 +98,9 @@ class TestBuildPipeline:
             ml.build_pipeline("invalid_model_name")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: trening i predykcja
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestTrainAndPredict:
     @pytest.fixture(scope="class")
@@ -157,9 +155,9 @@ class TestTrainAndPredict:
         assert all(isinstance(r, str) for r in reasons)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: ewaluacja
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestEvaluate:
     @pytest.fixture(scope="class")
@@ -184,9 +182,9 @@ class TestEvaluate:
         assert len(cm[0]) == 2
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: zapis i odczyt modelu
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestSaveLoad:
     def test_save_creates_file(self, tmp_path):

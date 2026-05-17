@@ -94,7 +94,7 @@ class NLTKTextPreprocessor(BaseEstimator, TransformerMixin):
         self.language = language
         self.min_token_len = min_token_len
 
-    def fit(self, X: Iterable[str], y=None) -> "NLTKTextPreprocessor":
+    def fit(self, X: Iterable[str], y=None) -> NLTKTextPreprocessor:
         _ensure_nltk()
         return self
 

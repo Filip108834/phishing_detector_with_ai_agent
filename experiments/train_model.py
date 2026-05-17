@@ -1,4 +1,4 @@
-"""
+﻿"""
 Skrypt trenowania i ewaluacji klasyfikatora phishingu.
 
 Uruchomienie:
@@ -17,8 +17,6 @@ Przykłady:
     # Ogranicz liczebność klas (szybki test)
     python -m experiments.train_model --max-per-class 500
 """
-from __future__ import annotations
-
 import argparse
 import json
 import logging
@@ -49,7 +47,7 @@ MODEL_PATH = Path("models/classifier.joblib")
 
 
 # ---------------------------------------------------------------------------
-# Pipeline danych: raw_eml → DataFrame cech
+# Pipeline danych: raw_eml -> DataFrame cech
 # ---------------------------------------------------------------------------
 
 def build_feature_matrix(df_raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
@@ -110,7 +108,7 @@ def run_training(
     cv: bool = True,
     save_model: bool = True,
 ) -> dict:
-    """Pełny cykl: ładowanie danych → cechy → train/test split → trening → ewaluacja."""
+    """Pełny cykl: ładowanie danych -> cechy -> train/test split -> trening -> ewaluacja."""
 
     # 1. Dane
     df_raw = load_all(
@@ -235,7 +233,7 @@ def _save_results(result: dict, model_name: str) -> None:
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     path = RESULTS_DIR / f"{model_name}_{ts}.json"
     path.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
-    logger.info("Wyniki zapisane → %s", path)
+    logger.info("Wyniki zapisane -> %s", path)
 
 
 # ---------------------------------------------------------------------------

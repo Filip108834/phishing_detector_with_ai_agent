@@ -1,12 +1,10 @@
-"""
+﻿"""
 Testy komponentowe: POST /ingest/mailhog, POST /ingest/campaign/{name},
                     DELETE /ingest/mailhog/purge
 
 Zewnętrzne zależności (MailHog, pliki .eml) są mockowane lub tworzone
 tymczasowo (tmp_path).
 """
-from __future__ import annotations
-
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -17,9 +15,9 @@ import agent.api.routes_ingest as ri
 from agent.db import Prediction
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Helpersy
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 PHISHING_EML = """\
 From: phisher@evil.xyz\r
@@ -65,9 +63,9 @@ def _make_mailhog_message(msg_id: str, raw_mime: str) -> MagicMock:
     return msg
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: POST /ingest/campaign/{name}
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestIngestCampaign:
     def test_missing_campaign_returns_404(self, client, tmp_path, monkeypatch):
@@ -139,9 +137,9 @@ class TestIngestCampaign:
         assert len(preds) == 1
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: DELETE /ingest/mailhog/purge
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestPurgeMailhog:
     def test_purge_calls_delete_all(self, client):
@@ -168,9 +166,9 @@ class TestPurgeMailhog:
         assert resp.status_code == 503
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: POST /ingest/mailhog
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestIngestMailhog:
     def test_ingest_empty_inbox(self, client):

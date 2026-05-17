@@ -62,20 +62,20 @@ Sieci Docker:
   - host_access:   internal: false (mostek do hosta - umożliwia port-binding)
 
 Porty dostępne z hosta (localhost):
-  - localhost:8000  →  AI Agent REST API
-  - localhost:8025  →  MailHog Web UI
-  - localhost:3333  →  Gophish Admin Panel
-  - localhost:8080  →  Gophish Phishing Server
+  - localhost:8000  ->  AI Agent REST API
+  - localhost:8025  ->  MailHog Web UI
+  - localhost:3333  ->  Gophish Admin Panel
+  - localhost:8080  ->  Gophish Phishing Server
 
 Schemat przepływu e-maila:
   campaign_generator.py
-       → Gophish API (tworzy kampanię)
-       → Gophish wysyła SMTP → MailHog:1025
-       → MailHog przechowuje wiadomości
-       → campaign_generator eksportuje .eml → data/raw/<kampania>/
-       → POST /ingest/campaign/<kampania> → AI Agent klasyfikuje
-       → Wyniki zapisywane w PostgreSQL
-       → GET /results/stats → raport
+       -> Gophish API (tworzy kampanię)
+       -> Gophish wysyła SMTP -> MailHog:1025
+       -> MailHog przechowuje wiadomości
+       -> campaign_generator eksportuje .eml -> data/raw/<kampania>/
+       -> POST /ingest/campaign/<kampania> -> AI Agent klasyfikuje
+       -> Wyniki zapisywane w PostgreSQL
+       -> GET /results/stats -> raport
 
 
 ================================================================================
@@ -312,7 +312,7 @@ BŁĄD 1 - Brak pliku .env uniemożliwia start Docker Compose
 ------------------------------------------------------------
   Objaw:
     docker compose up -d
-    → Error: env file .env not found
+    -> Error: env file .env not found
 
   Przyczyna:
     docker-compose.yml zawiera dyrektywę "env_file: - .env", ale plik .env
@@ -327,8 +327,8 @@ BŁĄD 2 - ModuleNotFoundError: No module named 'psycopg2' (kontener Linux)
 --------------------------------------------------------------------------
   Objaw:
     docker compose logs ai-agent
-    → ModuleNotFoundError: No module named 'psycopg2'
-    → Kontener w pętli restartowania (Restarting)
+    -> ModuleNotFoundError: No module named 'psycopg2'
+    -> Kontener w pętli restartowania (Restarting)
 
   Przyczyna:
     requirements.txt instaluje psycopg3 (psycopg[binary]) na Linuksie,
@@ -346,10 +346,10 @@ BŁĄD 2 - ModuleNotFoundError: No module named 'psycopg2' (kontener Linux)
 BŁĄD 3 - Port-binding nie działa (sieci internal: true)
 ---------------------------------------------------------
   Objaw:
-    curl http://localhost:8000/health → Connection refused
+    curl http://localhost:8000/health -> Connection refused
 
     docker inspect ai_agent --format '{{json .NetworkSettings.Ports}}'
-    → {"8000/tcp":[]}   (pusta lista - brak bindingu)
+    -> {"8000/tcp":[]}   (pusta lista - brak bindingu)
 
   Przyczyna:
     Obie sieci Docker (lab_internal i db_internal) mają ustawione
@@ -402,11 +402,11 @@ BŁĄD 4 - Gophish API: "No email template specified"
        curl -X DELETE "http://localhost:3333/api/groups/1?api_key=<KLUCZ>"
 
 
-BŁĄD 5 - UnicodeEncodeError przy wypisywaniu znaku "→" na Windows
+BŁĄD 5 - UnicodeEncodeError przy wypisywaniu znaku "->" na Windows
 ------------------------------------------------------------------
   Objaw:
     UnicodeEncodeError: 'charmap' codec can't encode character '\u2192'
-    (strzałka Unicode → w komunikacie "Wyeksportowano X wiadomości → dir/")
+    (strzałka Unicode -> w komunikacie "Wyeksportowano X wiadomości -> dir/")
 
   Przyczyna:
     Powłoka Windows (Git Bash / cmd) używa kodowania cp1250, które nie
@@ -418,7 +418,7 @@ BŁĄD 5 - UnicodeEncodeError przy wypisywaniu znaku "→" na Windows
     Dane są zapisane poprawnie, tylko metadane trzeba było dopisać ręcznie.
 
   Naprawa:
-    a) Zastąpiono "→" przez "->" w campaign_generator.py (replace_all).
+    a) Zastąpiono "->" przez "->" w campaign_generator.py (replace_all).
     b) Ustawiono zmienną środowiskową PYTHONIOENCODING=utf-8 przy wywołaniu.
     c) Ręcznie zapisano metadata.json dla campaign_bank_alert.
 
@@ -427,7 +427,7 @@ BŁĄD 6 - Brak montowania wolumenu data/ w kontenerze ai-agent
 --------------------------------------------------------------
   Objaw:
     curl -X POST http://localhost:8000/ingest/campaign/campaign_bank_alert
-    → {"detail":"Katalog kampanii nie istnieje: data/raw/campaign_bank_alert"}
+    -> {"detail":"Katalog kampanii nie istnieje: data/raw/campaign_bank_alert"}
 
   Przyczyna:
     Pliki .eml były eksportowane na hosta do katalogu data/raw/, ale
@@ -491,7 +491,7 @@ BŁĄD 6 - Brak montowania wolumenu data/ w kontenerze ai-agent
 5.4 MACIERZ POMYŁEK (dla e-maili z ground truth = phishing/legit)
 -------------------------------------------------------------------
 
-                    Predykcja PHISHING  |  Predykcja LEGIT
+                   Predykcja PHISHING  |  Predykcja LEGIT
   Ground PHISHING:         0 (TP=0)    |        15 (FN=15)
   Ground LEGIT:            0 (FP=0)    |        10 (TN=10)
 
@@ -541,7 +541,7 @@ FORMUŁA MODELU HEURYSTYCZNEGO (agent/ml/heuristic.py):
     + 0.25 * suspicious_urls       # IP-URL / podejrzane TLD / redirect
   )
 
-  Próg klasyfikacji: score >= 0.50 → "phishing", score < 0.50 → "legit"
+  Próg klasyfikacji: score >= 0.50 -> "phishing", score < 0.50 -> "legit"
 
 ANALIZA SKŁADOWYCH DLA KAMPANII PHISHINGOWYCH:
   -----------------------------------------------
@@ -555,25 +555,25 @@ ANALIZA SKŁADOWYCH DLA KAMPANII PHISHINGOWYCH:
 
   2. URGENCY EXCLAMATION - wynik: 1 tylko dla bank_alert
      bank_alert subject:    "PILNE: Zablokowano Twoje konto bankowe"
-       → wykryto wielkie litery + dwukropek → +0.15
+       -> wykryto wielkie litery + dwukropek -> +0.15
      password_reset subject: "Twoje hasło wygasło - wymagana zmiana"
-       → brak wykrzyknika ani CAPS → +0.00
+       -> brak wykrzyknika ani CAPS -> +0.00
      package_delivery subject: "Nie mogliśmy dostarczyć Twojej paczki"
-       → brak wykrzyknika → +0.00
+       -> brak wykrzyknika -> +0.00
 
   3. REPLY-TO MISMATCH - wynik: 0
      Gophish ustawia From: security-alert@lab.local i brak Reply-To.
-     Brak niezgodności → +0.00.
+     Brak niezgodności -> +0.00.
 
   4. FREEMAIL SENDER - wynik: 0
      Nadawca: security-alert@lab.local (domena wewnętrzna).
-     Nie jest to gmail.com / yahoo.com → +0.00.
+     Nie jest to gmail.com / yahoo.com -> +0.00.
 
   5. SUSPICIOUS URLS - wynik: 0 (KLUCZOWY PROBLEM)
      Gophish generuje linki w formacie: http://gophish:8080?rid=<id>
      URL analyzer sprawdza:
-       a) IP-based URL: "gophish" to nazwa hosta, nie IP → brak wykrycia
-       b) Suspicious TLD: .local / brak TLD → nie należy do listy .xyz/.tk/.ml
+       a) IP-based URL: "gophish" to nazwa hosta, nie IP -> brak wykrycia
+       b) Suspicious TLD: .local / brak TLD -> nie należy do listy .xyz/.tk/.ml
        c) Phishing keywords in URL: "gophish" nie zawiera "login/verify/account"
        d) @ in URL: brak
        e) Redirect params: brak
@@ -659,26 +659,26 @@ WNIOSEK 7 - POWTARZALNOŚĆ EKSPERYMENTU
 Struktura katalogów po zakończeniu eksperymentu:
 
   phishing_detector_with_ai_agent/
-  ├── data/
-  │   └── raw/
-  │       ├── campaign_bank_alert/
-  │       │   ├── 0000_GJydRzT5B8Kk6GFx.eml
-  │       │   ├── 0001_HO9m3DBMcMbaVxLN.eml
-  │       │   ├── 0002_4tZgqEVH4JCosH8u.eml
-  │       │   ├── 0003_dl88NeK2AToRFC31.eml
-  │       │   ├── 0004_OrsLswZPYPDXc0hP.eml
-  │       │   └── metadata.json
-  │       ├── campaign_password_reset/
-  │       │   ├── 0000_*.eml ... 0004_*.eml
-  │       │   └── metadata.json
-  │       ├── campaign_package_delivery/
-  │       │   ├── 0000_*.eml ... 0004_*.eml
-  │       │   └── metadata.json
-  │       └── legit_batch_01/
-  │           ├── 0000_*.eml ... 0009_*.eml
-  │           └── metadata.json
-  └── reports/
-      └── kampania_01_raport.txt    ← niniejszy raport
+  |-- data/
+  │   |-- raw/
+  │       |-- campaign_bank_alert/
+  │       │   |-- 0000_GJydRzT5B8Kk6GFx.eml
+  │       │   |-- 0001_HO9m3DBMcMbaVxLN.eml
+  │       │   |-- 0002_4tZgqEVH4JCosH8u.eml
+  │       │   |-- 0003_dl88NeK2AToRFC31.eml
+  │       │   |-- 0004_OrsLswZPYPDXc0hP.eml
+  │       │   |-- metadata.json
+  │       |-- campaign_password_reset/
+  │       │   |-- 0000_*.eml ... 0004_*.eml
+  │       │   |-- metadata.json
+  │       |-- campaign_package_delivery/
+  │       │   |-- 0000_*.eml ... 0004_*.eml
+  │       │   |-- metadata.json
+  │       |-- legit_batch_01/
+  │           |-- 0000_*.eml ... 0009_*.eml
+  │           |-- metadata.json
+  |-- reports/
+      |-- kampania_01_raport.txt    ← niniejszy raport
 
 Baza danych PostgreSQL (thesis_db, tabela predictions):
   - Łącznie: 60 rekordów

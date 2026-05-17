@@ -3,8 +3,6 @@ Ekstrakcja cech z listy URL-i znalezionych w wiadomości e-mail.
 
 Wszystkie funkcje są deterministyczne i nie wykonują żadnych zapytań sieciowych.
 """
-from __future__ import annotations
-
 import math
 import re
 from collections import Counter
@@ -83,7 +81,7 @@ def _analyze_single(url: str) -> dict:
     tld = ext.suffix.lower() if ext.suffix else ""
     domain = ext.domain.lower() if ext.domain else ""
 
-    # Głębokość subdomen (np. a.b.c.malicious.com → 2 subdomeny)
+    # Głębokość subdomen (np. a.b.c.malicious.com -> 2 subdomeny)
     subdomain = ext.subdomain.lower() if ext.subdomain else ""
     subdomain_depth = len(subdomain.split(".")) if subdomain else 0
 

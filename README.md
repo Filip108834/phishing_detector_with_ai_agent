@@ -27,22 +27,25 @@ System integruje narzędzia do symulacji phishingu z pipeline'em analitycznym op
 
 ## Wykorzystane technologie
 
-| Warstwa | Technologia | Wersja / uwagi |
+| Warstwa | Technologia | Opis |
 |---|---|---|
-| **Język** | Python | 3.11 |
-| **API agenta** | FastAPI + Uvicorn | REST API z Swagger UI |
-| **Baza danych** | PostgreSQL 16 | SQLAlchemy (psycopg3, dialekt `postgresql+psycopg`) |
-| **ML pipeline** | scikit-learn | VotingClassifier (LR + RF + HistGBT), TF-IDF, StandardScaler |
-| **Przetwarzanie tekstu** | NLTK | Tokenizacja, stopwords (EN+PL), NLTKTextPreprocessor |
-| **NLP** | spaCy `en_core_web_sm` | NER, POS tagging, wykrywanie imperatywów |
-| **Parsowanie e-mail** | Python `email` (stdlib) + BeautifulSoup/lxml | Dekodowanie MIME, ekstrakcja HTML |
-| **Analiza URL** | tldextract | TLD, subdomen, entropia, reputacja |
-| **Persystencja modelu** | joblib | Serializacja sklearn Pipeline |
-| **Symulacja phishingu** | Gophish | Zarządzanie kampaniami przez REST API |
-| **Przechwytywanie SMTP** | MailHog | Sandbox SMTP + API v2 (pobieranie .eml) |
-| **Orkiestracja** | Docker Compose | Izolowane sieci `lab_internal`, `db_internal`, `host_access` |
-| **Testowanie** | pytest | Testy jednostkowe, integracyjne, komponentowe |
-| **Dane treningowe** | SpamAssassin Public Corpus | ~6000 wiadomości EN (spam + ham) |
+| **Język** | Python 3.11 | Jeden interpreter zarówno dla agenta, jak i skryptów symulacyjnych |
+| **API agenta** | FastAPI + Uvicorn | REST API z automatycznym Swagger UI; schematy żądań/odpowiedzi przez Pydantic |
+| **Baza danych** | PostgreSQL 16 | Persystencja predykcji; ORM SQLAlchemy 2.0, sterownik psycopg3 (dialekt `postgresql+psycopg`) |
+| **ML pipeline** | scikit-learn + joblib | `ColumnTransformer` (gałąź tekstowa TF-IDF + gałąź numeryczna StandardScaler)  `VotingClassifier` (soft voting: LR + RF + HistGBT); serializacja pipeline przez joblib |
+| **Przetwarzanie tekstu** | NLTK | `NLTKTextPreprocessor` (sklearn-kompatybilny): tokenizacja, usuwanie stopwords EN+PL; stemming wyłączony dla obsługi języka polskiego |
+| **NLP** | spaCy `en_core_web_sm` | Ekstrakcja 12 cech NLP: NER (org, money, date), POS tagging, wykrywanie zdań imperatywnych |
+| **Parsowanie e-mail** | Python `email` (stdlib) + BeautifulSoup + lxml | Dekodowanie wieloczęściowych wiadomości MIME, ekstrakcja treści HTML i URL-i |
+| **Analiza URL** | tldextract | Ekstrakcja zarejestrowanej domeny, subdomeny i TLD; uzupełnione o własne reguły entropii i heurystyki w `url_analyzer.py` |
+| **Przetwarzanie danych** | pandas + numpy | Budowa macierzy cech, ewaluacja modelu (metryki), eksploracyjna analiza danych (EDA) |
+| **HTTP / integracje** | requests | Klient synchroniczny do komunikacji z MailHog API v2 i GoPhish REST API |
+| **Konfiguracja** | python-dotenv | Ładowanie zmiennych środowiskowych z pliku `.env` (URLs, klucze API, progi klasyfikacji) |
+| **Symulacja phishingu** | Gophish | Zarządzanie kampaniami e-mailowymi przez REST API; wysyłka przez SMTP MailHog |
+| **Przechwytywanie SMTP** | MailHog | Sandbox SMTP bez dostarczania; API v2 do pobierania i usuwania wiadomości `.eml` |
+| **Orkiestracja** | Docker Compose | Cztery serwisy w izolowanych sieciach: `lab_internal` (agent ↔ MailHog/Gophish), `db_internal` (agent ↔ PostgreSQL), `host_access` (port-binding do hosta) |
+| **Testowanie** | pytest + pytest-asyncio + httpx | Testy jednostkowe (`unit/`), integracyjne (`integration/`) i komponentowe API (`component/`); `httpx` jako transport dla FastAPI `TestClient` |
+| **Wizualizacja / EDA** | matplotlib + seaborn | Wykresy rozkładów cech, korelacji i TF-IDF w `notebooks/01_eda.ipynb` |
+| **Dane treningowe** | SpamAssassin Public Corpus + Enron Email Dataset | SpamAssassin: ~6000 wiadomości EN (spam + ham); Enron: opcjonalny duży zbiór anglojęzycznych e-maili biznesowych |
 
 ---
 
@@ -66,7 +69,7 @@ CV 5-fold (Ensemble): F1=0.9902, AUC=0.9987 - brak oznak overfittingu.
 | Faza 5 (3 kampanie) | Heurystyczny | 0.0% | 100.0% | 0.000 |
 | Faza 6 (3 kampanie) | ML Ensemble | 100.0% | 100.0% | 1.000 |
 
-Raporty szczegółowe: `reports/kampania_01_raport.txt` i `reports/kampania_02_raport.txt`.
+Raporty szczegółowe: `reports/kampania_01_raport.txt`, `reports/kampania_02_raport.txt`, `reports/kampania_03_raport.txt`.
 
 ---
 
@@ -74,34 +77,32 @@ Raporty szczegółowe: `reports/kampania_01_raport.txt` i `reports/kampania_02_r
 
 ```
 campaign_generator.py
-    → Gophish API (tworzy kampanię i wysyła przez SMTP)
-    → MailHog (przechwytuje e-maile, eksport .eml)
-    → POST /ingest/campaign/<nazwa>
-    → Agent AI (FastAPI)
-         ├── ParsedEmail (email_parser.py)
-         ├── FeatureExtractor → 37 cech numerycznych + tekst TF-IDF
-         ├── ML Pipeline: NLTKPreprocessor → TF-IDF + StandardScaler
-         │                → VotingClassifier (LR + RF + HistGBT)
-         │   lub Heuristic fallback (gdy brak modelu .joblib)
-         └── PostgreSQL (zapis predykcji)
+    -> Gophish API (tworzy kampanię i wysyła przez SMTP)
+    -> MailHog (przechwytuje e-maile, eksport .eml)
+    -> POST /ingest/campaign/<nazwa>
+    -> Agent AI (FastAPI)
+         |-- ParsedEmail (email_parser.py)
+         |-- FeatureExtractor -> 37 cech numerycznych + tekst TF-IDF
+         |-- ML Pipeline: NLTKPreprocessor -> TF-IDF + StandardScaler
+         |                -> VotingClassifier (LR + RF + HistGBT)
+         |   lub Heuristic fallback (gdy brak modelu .joblib)
+         |-- PostgreSQL (zapis predykcji)
 ```
 
 ### Sieć Docker
 
 ```
-┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│   MailHog   │  │   Gophish   │  │ PostgreSQL  │
-│  SMTP :1025 │  │ Admin :3333 │  │  :5432      │
-│  Web  :8025 │  │ Phish :8080 │  │ (db_intern.)│
-└──────┬──────┘  └──────┬──────┘  └──────┬──────┘
-       │    lab_internal │                │
-       └────────┬────────┘       db_intern│
-                │                         │
-       ┌────────▼─────────────────────────▼──────┐
-       │              AI Agent (FastAPI)          │
-       │  :8000  |  lab_internal + db_internal    │
-       │  + host_access (port-binding do hosta)  │
-       └──────────────────────────────────────────┘
+lab_internal  (sieć wewnętrzna, brak dostępu zewnętrznego)
+  |-- MailHog      SMTP :1025  |  Web UI :8025
+  |-- Gophish      Admin :3333 |  Phishing server :8080
+  |-- AI Agent     FastAPI :8000
+
+db_internal  (izolowana sieć bazodanowa)
+  |-- PostgreSQL   :5432
+  |-- AI Agent     FastAPI :8000
+
+host_access  (port-binding do hosta)
+  |-- AI Agent     :8000  localhost:8000
 ```
 
 ---
@@ -110,67 +111,68 @@ campaign_generator.py
 
 ```
 phishing_detector_with_ai_agent/
-├── agent/
-│   ├── api/
-│   │   ├── routes_ingest.py    # POST /ingest/campaign, POST /ingest/mailhog
-│   │   ├── routes_predict.py   # POST /predict, POST /predict/raw
-│   │   ├── routes_results.py   # GET /results, GET /results/stats
-│   │   └── schemas.py          # Modele Pydantic
-│   ├── features/
-│   │   ├── extractor.py        # Główna ekstrakcja cech (37 feat_* + text)
-│   │   ├── url_analyzer.py     # Analiza URL (entropia, TLD, IP, redirecty)
-│   │   ├── nlp_analyzer.py     # Cechy spaCy (NER, POS, zdania)
-│   │   └── text_preprocessor.py# NLTKTextPreprocessor (sklearn-compatible)
-│   ├── ingestion/
-│   │   ├── dataset_loader.py   # Ładowanie SpamAssassin / kampanii / Enron
-│   │   ├── email_parser.py     # Parsowanie MIME → ParsedEmail
-│   │   └── mailhog_poller.py   # Background poller MailHog
-│   ├── ml/
-│   │   └── pipeline.py         # build/train/evaluate/predict/save/load
-│   ├── db.py                   # SQLAlchemy (Prediction model, engine)
-│   ├── state.py                # Współdzielony stan modelu i pollera
-│   └── main.py                 # FastAPI app, lifespan, /health
+|-- agent/
+│   |-- api/
+│   │   |-- routes_ingest.py    # POST /ingest/campaign, POST /ingest/mailhog
+│   │   |-- routes_predict.py   # POST /predict, POST /predict/raw
+│   │   |-- routes_results.py   # GET /results, GET /results/stats
+│   │   |-- schemas.py          # Modele Pydantic
+│   |-- features/
+│   │   |-- extractor.py        # Główna ekstrakcja cech (37 feat_* + text)
+│   │   |-- url_analyzer.py     # Analiza URL (entropia, TLD, IP, redirecty)
+│   │   |-- nlp_analyzer.py     # Cechy spaCy (NER, POS, zdania)
+│   │   |-- text_preprocessor.py# NLTKTextPreprocessor (sklearn-compatible)
+│   |-- ingestion/
+│   │   |-- dataset_loader.py   # Ładowanie SpamAssassin / kampanii / Enron
+│   │   |-- email_parser.py     # Parsowanie MIME -> ParsedEmail
+│   │   |-- mailhog_poller.py   # Background poller MailHog
+│   |-- ml/
+│   │   |-- pipeline.py         # build/train/evaluate/predict/save/load
+│   |-- db.py                   # SQLAlchemy (Prediction model, engine)
+│   |-- state.py                # Współdzielony stan modelu i pollera
+│   |-- main.py                 # FastAPI app, lifespan, /health
 │
-├── simulation/
-│   ├── campaign_generator.py   # Generator kampanii end-to-end
-│   ├── gophish_client.py       # Wrapper Gophish REST API
-│   └── mailhog_client.py       # Klient MailHog API v2
+|-- simulation/
+│   |-- campaign_generator.py   # Generator kampanii end-to-end
+│   |-- gophish_client.py       # Wrapper Gophish REST API
+│   |-- mailhog_client.py       # Klient MailHog API v2
 │
-├── experiments/
-│   ├── train_model.py          # Trening / porównanie modeli (CLI)
-│   └── results/                # JSON z metrykami każdego treningu
+|-- experiments/
+│   |-- train_model.py          # Trening / porównanie modeli (CLI)
+│   |-- results/                # JSON z metrykami każdego treningu
 │
-├── data/
-│   ├── raw/                    # E-maile z kampanii (.eml + metadata.json)
-│   ├── processed/              # Wektory cech (opcjonalnie)
-│   └── datasets/               # SpamAssassin, Enron (git-ignored)
+|-- data/
+│   |-- raw/                    # E-maile z kampanii (.eml + metadata.json)
+│   |-- processed/              # Wektory cech (opcjonalnie)
+│   |-- datasets/               # SpamAssassin, Enron (git-ignored)
 │
-├── models/
-│   └── classifier.joblib       # Wytrenowany Ensemble (git-ignored)
+|-- models/
+│   |-- classifier.joblib       # Wytrenowany Ensemble (git-ignored)
 │
-├── reports/
-│   ├── kampania_01_raport.txt  # Faza 5: model heurystyczny
-│   └── kampania_02_raport.txt  # Faza 6: model ML, wyniki porównawcze
+|-- reports/
+│   |-- kampania_01_raport.txt  # Faza 5: model heurystyczny
+│   |-- kampania_02_raport.txt  # Faza 6: model ML, wyniki porównawcze
+│   |-- kampania_03_raport.txt  # Faza 7: po naprawie błędów B1–B4, NLTK aktywny
 │
-├── tests/
-│   ├── unit/                   # Testy jednostkowe (parser, extractor, URL)
-│   ├── integration/            # Testy pipeline ML
-│   └── component/              # Testy endpointów API (FastAPI TestClient)
+|-- tests/
+│   |-- unit/                   # Testy jednostkowe (parser, extractor, URL)
+│   |-- integration/            # Testy pipeline ML
+│   |-- component/              # Testy endpointów API (FastAPI TestClient)
 │
-├── scripts/
-│   └── fetch_datasets.py       # Pobieranie SpamAssassin + instrukcja Enron
+|-- scripts/
+│   |-- fetch_datasets.py       # Pobieranie SpamAssassin + instrukcja Enron
 │
-├── notebooks/
-│   └── 01_eda.ipynb            # Eksploracyjna analiza danych
+|-- notebooks/
+│   |-- 01_eda.ipynb            # Eksploracyjna analiza danych
 │
-├── docker/
-│   └── gophish/config.json     # Konfiguracja Gophish (porty, brak TLS)
+|-- docker/
+│   |-- gophish/config.json     # Konfiguracja Gophish (porty, brak TLS)
 │
-├── .env.example                # Szablon zmiennych środowiskowych
-├── docker-compose.yml          # Orkiestracja: MailHog, Gophish, PostgreSQL, agent
-├── Dockerfile                  # Obraz agenta AI (python:3.11-slim)
-├── requirements.txt
-└── pytest.ini
+|-- .env.example                # Szablon zmiennych środowiskowych
+|-- docker-compose.yml          # Orkiestracja: MailHog, Gophish, PostgreSQL, agent
+|-- Dockerfile                  # Obraz agenta AI (python:3.11-slim)
+|-- requirements.txt
+|-- pytest.ini
 ```
 
 ---
@@ -206,7 +208,7 @@ docker compose logs gophish | grep "Please login"
 # Wynik: Please login with the username admin and the password <HASLO>
 ```
 
-Zaloguj się na http://localhost:3333 → Account Settings → skopiuj API Key do `.env`:
+Zaloguj się na http://localhost:3333 -> Account Settings -> skopiuj API Key do `.env`:
 
 ```bash
 # Alternatywnie przez SQLite:
@@ -273,7 +275,7 @@ python -m experiments.train_model --compare --max-per-class 1000
 python -m experiments.train_model --model ensemble --max-per-class 1000
 
 # Opcje:
-#   --model lr|rf|gb|ensemble   (domyślnie: ensemble)
+#   --model lr|rf|gb|ensemble    (domyślnie: ensemble)
 #   --max-per-class N            (ogranicza próbki/klasę, przydatne do testów)
 #   --no-cv                      (pomija walidację krzyżową)
 #   --no-enron                   (wyklucza dataset Enron)
@@ -350,7 +352,7 @@ curl -X POST http://localhost:8000/predict \
 
 ### Gałąź tekstowa
 
-`NLTKTextPreprocessor(language=None)` → `TfidfVectorizer(ngram_range=(1,2), max_features=8000)`
+`NLTKTextPreprocessor(language=None)` -> `TfidfVectorizer(ngram_range=(1,2), max_features=8000)`
 
 Stopwords: angielskie (NLTK) + polskie (wbudowane). Stemming wyłączony (`language=None`) dla poprawnej obsługi języka polskiego.
 

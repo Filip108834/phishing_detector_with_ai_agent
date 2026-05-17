@@ -1,4 +1,4 @@
-"""
+﻿"""
 Agent AI - punkt wejścia FastAPI.
 
 Odpowiedzialność tego modułu jest celowo ograniczona do:
@@ -12,8 +12,6 @@ Logika biznesowa, schematy i dostęp do DB żyją w osobnych modułach:
     agent/api/schemas.py    - modele Pydantic
     agent/api/routes_*.py   - endpointy pogrupowane tematycznie
 """
-from __future__ import annotations
-
 import logging
 import os
 from contextlib import asynccontextmanager

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy jednostkowe: agent/features/text_preprocessor.py
 
 Testowane komponenty:
@@ -8,8 +8,6 @@ Testowane komponenty:
     - Usuwanie stopwords
     - Stemming
 """
-from __future__ import annotations
-
 import string
 
 import pytest
@@ -17,9 +15,9 @@ import pytest
 from agent.features.text_preprocessor import NLTKTextPreprocessor
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Fixture
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
 def preprocessor() -> NLTKTextPreprocessor:
@@ -29,9 +27,9 @@ def preprocessor() -> NLTKTextPreprocessor:
     return p
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: transformacja tekstu
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestTransform:
     def test_output_is_lowercase(self, preprocessor):
@@ -86,9 +84,9 @@ class TestTransform:
         assert all(len(w) >= 2 for w in words)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: interfejs sklearn
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestSklearnInterface:
     def test_fit_returns_self(self):

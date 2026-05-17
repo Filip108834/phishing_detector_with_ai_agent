@@ -1,4 +1,4 @@
-"""
+﻿"""
 Ładowanie zbiorów danych do trenowania klasyfikatora.
 
 Obsługiwane źródła:
@@ -11,8 +11,6 @@ Zwracany DataFrame ma zawsze kolumny:
     label    : int   - 0 = legit, 1 = phishing/spam
     source   : str   - identyfikator zbioru danych
 """
-from __future__ import annotations
-
 import json
 import logging
 from pathlib import Path
@@ -27,7 +25,7 @@ SPAMASSASSIN_DIR = Path("data/datasets/spamassassin")
 CAMPAIGNS_DIR = Path("data/raw")
 ENRON_CSV = Path("data/datasets/enron/emails.csv")
 
-# Mapowanie podkatalogów SpamAssassin → etykieta
+# Mapowanie podkatalogów SpamAssassin -> etykieta
 _SA_LABEL_MAP: dict[str, int] = {
     "easy_ham":   0,
     "easy_ham_2": 0,

@@ -8,13 +8,13 @@ Zwraca słownik cech gotowy do wrzucenia w pandas DataFrame:
     }
 
 Podział cech:
-    Tekstowe  (1 kolumna)  → TF-IDF wewnątrz sklearn Pipeline
-    Numeryczne (N kolumn)  → StandardScaler wewnątrz ColumnTransformer
+    Tekstowe  (1 kolumna)  -> TF-IDF wewnątrz sklearn Pipeline
+    Numeryczne (N kolumn)  -> StandardScaler wewnątrz ColumnTransformer
 """
-from __future__ import annotations
-
 import re
 from typing import Any
+
+import pandas as pd
 
 from agent.features.nlp_analyzer import NLP_FEATURE_COLS, analyze_text
 from agent.features.url_analyzer import analyze_urls
@@ -151,7 +151,7 @@ def extract(parsed: ParsedEmail) -> dict[str, Any]:
     features["feat_text_length"] = float(text_len)
     features["feat_exclamation_density"] = float(full_text.count("!") / text_len)
 
-    # Stosunek wielkich liter (CAPS lock → presja / alarm)
+    # Stosunek wielkich liter (CAPS lock -> presja / alarm)
     upper_count = sum(1 for c in full_text if c.isupper())
     alpha_count = sum(1 for c in full_text if c.isalpha())
     features["feat_caps_ratio"] = float(upper_count / max(alpha_count, 1))
@@ -165,9 +165,8 @@ def extract(parsed: ParsedEmail) -> dict[str, Any]:
     return features
 
 
-def extract_batch(parsed_emails: list[ParsedEmail]) -> "pd.DataFrame":
+def extract_batch(parsed_emails: list[ParsedEmail]) -> pd.DataFrame:
     """Wyciąga cechy z listy ParsedEmail i zwraca DataFrame."""
-    import pandas as pd
     rows = [extract(p) for p in parsed_emails]
     return pd.DataFrame(rows)
 
@@ -177,7 +176,7 @@ def extract_batch(parsed_emails: list[ParsedEmail]) -> "pd.DataFrame":
 # ---------------------------------------------------------------------------
 
 def _extract_domain(addr: str) -> str:
-    """Wyciąga domenę z adresu e-mail (np. 'phish@evil.com' → 'evil.com')."""
+    """Wyciąga domenę z adresu e-mail (np. 'phish@evil.com' -> 'evil.com')."""
     if not addr:
         return ""
     match = re.search(r"@([\w.\-]+)", addr)

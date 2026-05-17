@@ -1,5 +1,5 @@
 # =========================================================
-# Stage 1: builder  -  kompilacja zależności C/C++ (lxml itp.)
+# Stage 1: builder  -  kompilacja zależności
 # =========================================================
 FROM python:3.11-slim AS builder
 

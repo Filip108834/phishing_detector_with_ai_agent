@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy jednostkowe: agent/ingestion/email_parser.py
 
 Testowane komponenty:
@@ -6,16 +6,14 @@ Testowane komponenty:
     - ParsedEmail.from_request() - budowanie z danych API
     - Ekstrakcja URL, SPF, nagłówków, hopów
 """
-from __future__ import annotations
-
 import pytest
 
 from agent.ingestion.email_parser import ParsedEmail
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Helpersy
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 PLAIN_EML = """\
 From: sender@example.com\r
@@ -112,9 +110,9 @@ Visit http://example.com/page and also https://other.org/path?q=1 for details.\
 """
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: from_string
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestFromString:
     def test_basic_fields_populated(self):
@@ -183,9 +181,9 @@ class TestFromString:
         assert parsed.has_attachments is False
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: from_request
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestFromRequest:
     def test_basic_fields(self):

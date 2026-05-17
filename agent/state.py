@@ -1,12 +1,10 @@
-"""
+﻿"""
 Współdzielony stan aplikacji (singleton).
 
 Przechowuje załadowany model ML i referencję do pollera MailHog.
 Importowany przez moduły API i ingestion bez ryzyka circular imports,
 ponieważ nie importuje nic z pozostałych modułów agenta.
 """
-from __future__ import annotations
-
 from typing import Any, Optional
 
 # ---------------------------------------------------------------------------

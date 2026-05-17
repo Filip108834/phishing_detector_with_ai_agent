@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy jednostkowe: agent/features/url_analyzer.py
 
 Testowane komponenty:
@@ -6,8 +6,6 @@ Testowane komponenty:
     - _char_entropy()    - entropia Shannona
     - _analyze_single()  - analiza pojedynczego URL-a
 """
-from __future__ import annotations
-
 import math
 
 import pytest
@@ -15,9 +13,9 @@ import pytest
 from agent.features.url_analyzer import analyze_urls, _char_entropy
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: pusta lista URL-i
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestEmptyUrls:
     def test_empty_list_returns_zero_dict(self):
@@ -36,9 +34,9 @@ class TestEmptyUrls:
         assert expected_keys == set(result.keys())
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: wykrywanie wskaźników phishingu
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestPhishingIndicators:
     def test_ip_url_detected(self):
@@ -86,9 +84,9 @@ class TestPhishingIndicators:
         assert result["has_redirect_param"] == 1.0
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: metryki liczbowe
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestNumericMetrics:
     def test_url_count(self):
@@ -130,9 +128,9 @@ class TestNumericMetrics:
         assert result["avg_url_entropy"] > 0.0
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: _char_entropy
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestCharEntropy:
     def test_empty_string_returns_zero(self):

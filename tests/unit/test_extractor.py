@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy jednostkowe: agent/features/extractor.py
 
 Testowane komponenty:
@@ -6,17 +6,15 @@ Testowane komponenty:
     - NUMERICAL_FEATURE_COLS - kompletność listy kolumn
     - _extract_domain()      - wyciąganie domeny z adresu e-mail
 """
-from __future__ import annotations
-
 import pytest
 
 from agent.features.extractor import NUMERICAL_FEATURE_COLS, extract
 from agent.ingestion.email_parser import ParsedEmail
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Helpersy
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 def _parsed(**kwargs) -> ParsedEmail:
     """Tworzy ParsedEmail z minimalnym zestawem pól; resztę wypełnia defaults."""
@@ -41,9 +39,9 @@ def _parsed(**kwargs) -> ParsedEmail:
     return ParsedEmail(**defaults)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: struktura wektora cech
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestExtractStructure:
     def test_text_key_present(self):
@@ -70,9 +68,9 @@ class TestExtractStructure:
         assert len(NUMERICAL_FEATURE_COLS) == 35
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: cechy nagłówkowe
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestHeaderFeatures:
     def test_from_reply_to_mismatch_detected(self):
@@ -130,9 +128,9 @@ class TestHeaderFeatures:
         assert feats["feat_received_hops"] == 5.0
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: cechy tematu
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestSubjectFeatures:
     def test_urgency_score_from_subject(self):
@@ -156,9 +154,9 @@ class TestSubjectFeatures:
         assert feats["feat_subject_exclamation"] >= 2.0
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: cechy stylistyczne
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestStyleFeatures:
     def test_caps_ratio_all_upper(self):

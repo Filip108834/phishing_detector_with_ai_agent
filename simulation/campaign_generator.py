@@ -1,4 +1,4 @@
-"""
+﻿"""
 Skrypt generujący kampanie phishingowe w środowisku laboratoryjnym.
 
 Uruchomienie:
@@ -19,8 +19,6 @@ Kroki skryptu:
     7. Eksport wiadomości z MailHog do data/raw/<campaign_name>/
     8. Zapis metadanych kampanii do data/raw/<campaign_name>/metadata.json
 """
-from __future__ import annotations
-
 import json
 import os
 import sys

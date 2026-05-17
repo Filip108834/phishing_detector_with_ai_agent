@@ -28,8 +28,8 @@ SPIS TREŚCI
 Faza 6 miała trzy cele:
 
   a) Weryfikacja poprawności naprawionych bugów (W1-W4, A1) z przeglądu kodu.
-  b) Przeprowadzenie pełnego cyklu: kampanie phishingowe → ingestion →
-     trenowanie modelu ML → klasyfikacja przez ML → pomiar skuteczności.
+  b) Przeprowadzenie pełnego cyklu: kampanie phishingowe -> ingestion ->
+     trenowanie modelu ML -> klasyfikacja przez ML -> pomiar skuteczności.
   c) Kwantyfikacja poprawy skuteczności po przejściu z modelu heurystycznego
      na model uczenia maszynowego (Ensemble: LR + RF + HistGBT).
 
@@ -69,7 +69,7 @@ Faza 6 miała trzy cele:
        - feat_xmailer_known_phish_tool: 1 jeśli X-Mailer zawiera nazwę
          znanych narzędzi phishingowych (gophish, phpmailer, mass mailer…)
        - feat_has_dkim: 1 jeśli wiadomość ma podpis DKIM (legit sygnał)
-    Obie cechy dodane do NUMERICAL_FEATURE_COLS (vector: 35 → 37 kolumn).
+    Obie cechy dodane do NUMERICAL_FEATURE_COLS (vector: 35 -> 37 kolumn).
 
 2.5 A1 - Balans klas i max_per_class dla Enrona [2 pliki]
     a) dataset_loader.py: load_enron() przyjmuje teraz max_per_class,
@@ -120,9 +120,9 @@ Model ML:
     - RandomForestClassifier (n_estimators=200, max_depth=20, class_weight=balanced)
     - HistGradientBoostingClassifier (max_iter=150, max_depth=5, lr=0.1, class_weight=balanced)
   Pipeline:
-    NLTKTextPreprocessor(language=None) → TF-IDF(8000 feat, ngram 1-2)
+    NLTKTextPreprocessor(language=None) -> TF-IDF(8000 feat, ngram 1-2)
     + StandardScaler(37 cech numerycznych)
-    → dense matrix → VotingClassifier
+    -> dense matrix -> VotingClassifier
 
 
 ================================================================================
@@ -133,19 +133,19 @@ KAMPANIA 1 - Alert bankowy (lab_phish_bank_alert)
   Szablon:   PILNE: Zablokowano Twoje konto bankowe
   Typ:       Phishing
   Odbiorcy:  5 (jan.kowalski, anna.nowak, piotr.wisniewski, k.dabrowska, m.lewandowski)
-  Dostarczone: 5/5 → data/raw/campaign2_bank_alert/ (5 plików .eml)
+  Dostarczone: 5/5 -> data/raw/campaign2_bank_alert/ (5 plików .eml)
 
 KAMPANIA 2 - Reset hasła (lab_phish_password_reset)
   Szablon:   Twoje hasło wygasło - wymagana zmiana (Microsoft brand)
   Typ:       Phishing
   Odbiorcy:  5
-  Dostarczone: 5/5 → data/raw/campaign2_password_reset/ (5 plików .eml)
+  Dostarczone: 5/5 -> data/raw/campaign2_password_reset/ (5 plików .eml)
 
 KAMPANIA 3 - Fałszywy kurier (lab_phish_package_delivery)
   Szablon:   Nie mogliśmy dostarczyć Twojej paczki - wymagana opłata 3,99 PLN
   Typ:       Phishing
   Odbiorcy:  5
-  Dostarczone: 5/5 → data/raw/campaign2_package_delivery/ (5 plików .eml)
+  Dostarczone: 5/5 -> data/raw/campaign2_package_delivery/ (5 plików .eml)
 
 BATCH LEGIT - Newsletter + Zaproszenie na spotkanie
   Szablony:  lab_legit_newsletter, lab_legit_meeting_invite
@@ -288,20 +288,20 @@ Wybrany model do produkcji: Ensemble (najlepszy F1, stabilność CV)
   AUC (test set)|   -                 |  0.998
 
   SCORE per kampania (model heurystyczny):
-    bank_alert:       avg=0.300  (poniżej progu 0.50 → legit)
-    password_reset:   avg=0.200  (poniżej progu 0.50 → legit)
-    package_delivery: avg=0.150  (poniżej progu 0.50 → legit)
-    legit_batch_01:   avg=0.150  (poniżej progu 0.50 → poprawnie legit)
+    bank_alert:       avg=0.300  (poniżej progu 0.50 -> legit)
+    password_reset:   avg=0.200  (poniżej progu 0.50 -> legit)
+    package_delivery: avg=0.150  (poniżej progu 0.50 -> legit)
+    legit_batch_01:   avg=0.150  (poniżej progu 0.50 -> poprawnie legit)
 
   SCORE per kampania (model ML):
-    bank_alert:       avg=0.976  (powyżej progu 0.50 → phishing ✓)
-    password_reset:   avg=0.971  (powyżej progu 0.50 → phishing ✓)
-    package_delivery: avg=0.962  (powyżej progu 0.50 → phishing ✓)
-    legit_batch_01:   avg=0.134  (poniżej progu 0.50 → legit ✓)
+    bank_alert:       avg=0.976  (powyżej progu 0.50 -> phishing ✓)
+    password_reset:   avg=0.971  (powyżej progu 0.50 -> phishing ✓)
+    package_delivery: avg=0.962  (powyżej progu 0.50 -> phishing ✓)
+    legit_batch_01:   avg=0.134  (poniżej progu 0.50 -> legit ✓)
 
   Kluczowa obserwacja: ML "odwrócił" skuteczność modelu:
-    - Heurystyka: TPR=0%, TNR=100% → chroni przed FP, nie wykrywa ataków
-    - ML:         TPR=100%, TNR=100% → wykrywa ataki i nie generuje FP
+    - Heurystyka: TPR=0%, TNR=100% -> chroni przed FP, nie wykrywa ataków
+    - ML:         TPR=100%, TNR=100% -> wykrywa ataki i nie generuje FP
 
 
 ================================================================================
@@ -375,7 +375,7 @@ WNIOSEK 4 - NAPRAWA BUGÓW MIAŁA REALNY WPŁYW NA JAKOŚĆ MODELU
    b) Bug W2 (strip_accents): polskie tokeny ("zablokowano", "potwierdź")
       nie były już sprowadzane do ASCII-wariantów w TF-IDF.
    c) Bug W4 (X-Mailer): cecha feat_xmailer_known_phish_tool = 1.0 dla
-      każdej wiadomości z kampanii Gophish → silny sygnał phishingu.
+      każdej wiadomości z kampanii Gophish -> silny sygnał phishingu.
    Każdy z tych bugów samodzielnie mógłby obniżyć skuteczność o kilka
    punktów procentowych.
 
@@ -399,7 +399,7 @@ WNIOSEK 6 - PROBLEM DOMENY: WYNIKI LAB ≠ WYNIKI PRODUKCYJNE
 
 WNIOSEK 7 - ARCHITEKTURA DWUTOROWA DZIAŁA POPRAWNIE
    Model ML jest ładowany automatycznie jeśli istnieje models/classifier.joblib
-   (graceful degradation → heurystyka gdy brak pliku). Poller MailHog działa
+   (graceful degradation -> heurystyka gdy brak pliku). Poller MailHog działa
    niezależnie w tle. REST API klasyfikuje e-maile w < 100ms.
    System nadaje się do dalszego rozwijania jako platforma badawcza.
 

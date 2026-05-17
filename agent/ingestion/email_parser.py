@@ -67,13 +67,13 @@ class ParsedEmail:
     spf_result: str = ""         # "pass" / "fail" / "softfail" / ""
 
     @classmethod
-    def from_string(cls, raw: str) -> "ParsedEmail":
+    def from_string(cls, raw: str) -> ParsedEmail:
         """Parsuje surowy string MIME."""
         msg = email.message_from_string(raw, policy=email.policy.compat32)
         return _parse_message(msg, raw_size=len(raw.encode("utf-8", errors="replace")))
 
     @classmethod
-    def from_file(cls, path: str | Path) -> "ParsedEmail":
+    def from_file(cls, path: str | Path) -> ParsedEmail:
         """Wczytuje i parsuje plik .eml."""
         data = Path(path).read_bytes()
         msg = email.message_from_bytes(data, policy=email.policy.compat32)
@@ -88,7 +88,7 @@ class ParsedEmail:
         body: str = "",
         urls: Optional[list[str]] = None,
         headers: Optional[dict] = None,
-    ) -> "ParsedEmail":
+    ) -> ParsedEmail:
         """Tworzy ParsedEmail ze strukturyzowanego żądania API (bez parsowania MIME)."""
         hdrs = headers or {}
         obj = cls(

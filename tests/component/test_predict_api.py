@@ -1,17 +1,15 @@
-"""
+﻿"""
 Testy komponentowe: POST /predict, GET /model/info, GET /health
 
 Używa prawdziwego FastAPI TestClient + SQLite in-memory (patchowanego w conftest).
-Model ML nie jest załadowany → klasyfikator heurystyczny.
+Model ML nie jest załadowany -> klasyfikator heurystyczny.
 """
-from __future__ import annotations
-
 import pytest
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: /health
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestHealth:
     def test_health_returns_200(self, client):
@@ -36,9 +34,9 @@ class TestHealth:
         assert "poller" not in data
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: /predict
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestPredict:
     def test_predict_returns_200(self, client):
@@ -60,7 +58,7 @@ class TestPredict:
         assert 0.0 <= data["score"] <= 1.0
 
     def test_predict_with_phishing_ip_url(self, client):
-        # score = 0.15 (base) + 0.25 (IP URL) + 0.05*2 (verify+suspended) = 0.50 → phishing
+        # score = 0.15 (base) + 0.25 (IP URL) + 0.05*2 (verify+suspended) = 0.50 -> phishing
         resp = client.post("/predict", json={
             "body": "verify account suspended",
             "urls": ["http://192.168.1.100/verify"],
@@ -129,9 +127,9 @@ class TestPredict:
         assert len(data["reasons"]) >= 1
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Testy: /model/info
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 class TestModelInfo:
     def test_model_info_returns_200(self, client):
