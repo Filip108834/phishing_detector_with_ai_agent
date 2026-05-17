@@ -491,7 +491,7 @@ BŁĄD 6 - Brak montowania wolumenu data/ w kontenerze ai-agent
 5.4 MACIERZ POMYŁEK (dla e-maili z ground truth = phishing/legit)
 -------------------------------------------------------------------
 
-                    Predykcja PHISHING  |  Predykcja LEGIT
+                   Predykcja PHISHING  |  Predykcja LEGIT
   Ground PHISHING:         0 (TP=0)    |        15 (FN=15)
   Ground LEGIT:            0 (FP=0)    |        10 (TN=10)
 
