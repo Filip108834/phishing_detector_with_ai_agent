@@ -1,4 +1,4 @@
-"""
+﻿"""
 Ładowanie zbiorów danych do trenowania klasyfikatora.
 
 Obsługiwane źródła:
@@ -11,8 +11,6 @@ Zwracany DataFrame ma zawsze kolumny:
     label    : int   - 0 = legit, 1 = phishing/spam
     source   : str   - identyfikator zbioru danych
 """
-from __future__ import annotations
-
 import json
 import logging
 from pathlib import Path

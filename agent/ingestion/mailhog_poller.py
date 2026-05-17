@@ -1,4 +1,4 @@
-"""
+﻿"""
 Background poller - automatyczna klasyfikacja nowych e-maili z MailHog.
 
 Uruchamiany jako asyncio task w FastAPI lifespan.
@@ -10,8 +10,6 @@ Zależności:
     - agent.state                             (dostęp do pipeline ML)
     - agent.api.routes_predict.classify_parsed
 """
-from __future__ import annotations
-
 import asyncio
 import logging
 import os

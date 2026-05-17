@@ -1,4 +1,4 @@
-"""
+﻿"""
 Klient MailHog API v2.
 
 MailHog przechwytuje e-maile wysłane przez Gophish (SMTP :1025)
@@ -12,8 +12,6 @@ Użycie:
     client.export_to_eml_dir(msgs, "data/raw/campaign_01")
     client.delete_all()
 """
-from __future__ import annotations
-
 import email
 import json
 import os

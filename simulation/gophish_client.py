@@ -1,4 +1,4 @@
-"""
+﻿"""
 Klient REST API Gophish.
 
 Dokumentacja API: https://docs.getgophish.com/api-documentation
@@ -8,8 +8,6 @@ Użycie:
     client = GophishClient(api_url="http://localhost:3333", api_key="...")
     profiles = client.list_sending_profiles()
 """
-from __future__ import annotations
-
 import json
 from dataclasses import dataclass, field
 from typing import Any

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy jednostkowe: agent/features/extractor.py
 
 Testowane komponenty:
@@ -6,8 +6,6 @@ Testowane komponenty:
     - NUMERICAL_FEATURE_COLS - kompletność listy kolumn
     - _extract_domain()      - wyciąganie domeny z adresu e-mail
 """
-from __future__ import annotations
-
 import pytest
 
 from agent.features.extractor import NUMERICAL_FEATURE_COLS, extract

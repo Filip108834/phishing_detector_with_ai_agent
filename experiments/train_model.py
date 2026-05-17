@@ -1,4 +1,4 @@
-"""
+﻿"""
 Skrypt trenowania i ewaluacji klasyfikatora phishingu.
 
 Uruchomienie:
@@ -17,8 +17,6 @@ Przykłady:
     # Ogranicz liczebność klas (szybki test)
     python -m experiments.train_model --max-per-class 500
 """
-from __future__ import annotations
-
 import argparse
 import json
 import logging

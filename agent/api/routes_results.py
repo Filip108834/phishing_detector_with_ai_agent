@@ -1,4 +1,4 @@
-"""
+﻿"""
 Router: historia predykcji i statystyki.
 
 Endpointy:
@@ -7,8 +7,6 @@ Endpointy:
     GET /results/{id}         - szczegóły pojedynczej predykcji
     GET /results/campaign/{n} - predykcje dla danej kampanii
 """
-from __future__ import annotations
-
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Główny conftest - ustawiany PRZED importem jakichkolwiek modułów agenta.
 
 Kolejność działania:
@@ -7,8 +7,6 @@ Kolejność działania:
     3. SessionLocal we wszystkich modułach routerów jest patchowany
     4. Tabele tworzone jeden raz dla całej sesji testowej
 """
-from __future__ import annotations
-
 import os
 
 # -- Musi być PRZED każdym importem z agent.* ---------------------------------

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Definicja pipeline'u ML oraz funkcje trenowania, ewaluacji i persystencji modelu.
 
 Architektura pipeline'u:
@@ -16,8 +16,6 @@ Dostępne warianty klasyfikatora (argument `model_name`):
     "gb"        - Gradient Boosting
     "ensemble"  - VotingClassifier(lr + rf + gb, soft voting)  [domyślny]
 """
-from __future__ import annotations
-
 import logging
 import os
 from pathlib import Path

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy jednostkowe: agent/features/text_preprocessor.py
 
 Testowane komponenty:
@@ -8,8 +8,6 @@ Testowane komponenty:
     - Usuwanie stopwords
     - Stemming
 """
-from __future__ import annotations
-
 import string
 
 import pytest

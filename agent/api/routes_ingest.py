@@ -1,4 +1,4 @@
-"""
+﻿"""
 Router: masowe pobieranie i klasyfikacja wiadomości.
 
 Endpointy:
@@ -6,8 +6,6 @@ Endpointy:
     POST /ingest/campaign/{name}      - sklasyfikuj e-maile z lokalnej kampanii (data/raw/)
     DELETE /ingest/mailhog/purge      - wyczyść skrzynkę MailHog
 """
-from __future__ import annotations
-
 import json
 import logging
 import os

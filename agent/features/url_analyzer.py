@@ -3,8 +3,6 @@ Ekstrakcja cech z listy URL-i znalezionych w wiadomości e-mail.
 
 Wszystkie funkcje są deterministyczne i nie wykonują żadnych zapytań sieciowych.
 """
-from __future__ import annotations
-
 import math
 import re
 from collections import Counter

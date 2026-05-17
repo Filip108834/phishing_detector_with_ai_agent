@@ -11,8 +11,6 @@ Podział cech:
     Tekstowe  (1 kolumna)  -> TF-IDF wewnątrz sklearn Pipeline
     Numeryczne (N kolumn)  -> StandardScaler wewnątrz ColumnTransformer
 """
-from __future__ import annotations
-
 import re
 from typing import Any
 

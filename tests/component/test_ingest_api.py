@@ -1,12 +1,10 @@
-"""
+﻿"""
 Testy komponentowe: POST /ingest/mailhog, POST /ingest/campaign/{name},
                     DELETE /ingest/mailhog/purge
 
 Zewnętrzne zależności (MailHog, pliki .eml) są mockowane lub tworzone
 tymczasowo (tmp_path).
 """
-from __future__ import annotations
-
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch

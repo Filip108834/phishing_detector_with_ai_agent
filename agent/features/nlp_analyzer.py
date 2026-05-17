@@ -14,8 +14,6 @@ działa nadal poprawnie, tylko bez tych cech.
 Instalacja modelu:
     python -m spacy download en_core_web_sm
 """
-from __future__ import annotations
-
 import logging
 
 logger = logging.getLogger(__name__)

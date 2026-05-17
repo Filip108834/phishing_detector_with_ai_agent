@@ -1,11 +1,9 @@
-"""
+﻿"""
 Testy komponentowe: GET /results, GET /results/stats, GET /results/{id}
 
 Używa prawdziwego TestClient + SQLite. Dane są wstawiane bezpośrednio przez
 ORM lub przez endpoint /predict.
 """
-from __future__ import annotations
-
 import pytest
 
 from agent.db import Prediction

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Pobieranie publicznych zbiorów danych do trenowania klasyfikatora.
 
 Uruchomienie:
@@ -23,8 +23,6 @@ Struktura wyjściowa:
     |-- enron/          (po ręcznym pobraniu)
     |-- manifest.json   (podsumowanie zbiorów)
 """
-from __future__ import annotations
-
 import argparse
 import hashlib
 import json

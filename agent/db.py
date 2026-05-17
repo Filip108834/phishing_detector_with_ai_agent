@@ -1,10 +1,8 @@
-"""
+﻿"""
 Konfiguracja bazy danych - SQLAlchemy engine, session, modele ORM.
 
 Importuj stąd: engine, SessionLocal, Base, Prediction
 """
-from __future__ import annotations
-
 import os
 from datetime import datetime, timezone
 

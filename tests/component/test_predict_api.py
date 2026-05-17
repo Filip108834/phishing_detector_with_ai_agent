@@ -1,11 +1,9 @@
-"""
+﻿"""
 Testy komponentowe: POST /predict, GET /model/info, GET /health
 
 Używa prawdziwego FastAPI TestClient + SQLite in-memory (patchowanego w conftest).
 Model ML nie jest załadowany -> klasyfikator heurystyczny.
 """
-from __future__ import annotations
-
 import pytest
 
 

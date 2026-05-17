@@ -1,4 +1,4 @@
-"""
+﻿"""
 Router: klasyfikacja wiadomości e-mail.
 
 Endpointy:
@@ -6,8 +6,6 @@ Endpointy:
     POST /predict/raw  - klasyfikacja z surowego MIME (.eml string)
     GET  /model/info   - informacje o aktywnym modelu
 """
-from __future__ import annotations
-
 import os
 import re
 from typing import Optional

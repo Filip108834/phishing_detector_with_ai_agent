@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy integracyjne: agent/ml/pipeline.py
 
 Weryfikują pełny cykl ML:
@@ -7,8 +7,6 @@ Weryfikują pełny cykl ML:
 Używa minimalnego zbioru danych (20 próbek) i prostego modelu "lr"
 (LogisticRegression), żeby testy były szybkie.
 """
-from __future__ import annotations
-
 import pandas as pd
 import pytest
 

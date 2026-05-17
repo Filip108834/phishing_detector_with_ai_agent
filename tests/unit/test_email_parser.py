@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy jednostkowe: agent/ingestion/email_parser.py
 
 Testowane komponenty:
@@ -6,8 +6,6 @@ Testowane komponenty:
     - ParsedEmail.from_request() - budowanie z danych API
     - Ekstrakcja URL, SPF, nagłówków, hopów
 """
-from __future__ import annotations
-
 import pytest
 
 from agent.ingestion.email_parser import ParsedEmail

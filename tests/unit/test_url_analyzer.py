@@ -1,4 +1,4 @@
-"""
+﻿"""
 Testy jednostkowe: agent/features/url_analyzer.py
 
 Testowane komponenty:
@@ -6,8 +6,6 @@ Testowane komponenty:
     - _char_entropy()    - entropia Shannona
     - _analyze_single()  - analiza pojedynczego URL-a
 """
-from __future__ import annotations
-
 import math
 
 import pytest
