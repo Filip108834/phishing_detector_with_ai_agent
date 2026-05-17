@@ -83,7 +83,7 @@ def _analyze_single(url: str) -> dict:
     tld = ext.suffix.lower() if ext.suffix else ""
     domain = ext.domain.lower() if ext.domain else ""
 
-    # Głębokość subdomen (np. a.b.c.malicious.com → 2 subdomeny)
+    # Głębokość subdomen (np. a.b.c.malicious.com -> 2 subdomeny)
     subdomain = ext.subdomain.lower() if ext.subdomain else ""
     subdomain_depth = len(subdomain.split(".")) if subdomain else 0
 

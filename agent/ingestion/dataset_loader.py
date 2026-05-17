@@ -27,7 +27,7 @@ SPAMASSASSIN_DIR = Path("data/datasets/spamassassin")
 CAMPAIGNS_DIR = Path("data/raw")
 ENRON_CSV = Path("data/datasets/enron/emails.csv")
 
-# Mapowanie podkatalogów SpamAssassin → etykieta
+# Mapowanie podkatalogów SpamAssassin -> etykieta
 _SA_LABEL_MAP: dict[str, int] = {
     "easy_ham":   0,
     "easy_ham_2": 0,

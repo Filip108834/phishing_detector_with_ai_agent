@@ -6,7 +6,7 @@ Architektura pipeline'u:
         ↓  EmailParser + FeatureExtractor (+ spaCy NLP)
     DataFrame { "text": str, "feat_*": float, ... }
         ↓  ColumnTransformer
-    [NLTKPreprocessor → TF-IDF(text) | StandardScaler(feat_*)]  →  sparse+dense concat
+    [NLTKPreprocessor -> TF-IDF(text) | StandardScaler(feat_*)]  ->  sparse+dense concat
         ↓  Classifier
     label: 0/1  +  proba: float
 
@@ -68,7 +68,7 @@ def build_pipeline(model_name: str = "ensemble") -> Pipeline:
     Args:
         model_name: "lr" | "rf" | "gb" | "ensemble"
     """
-    # Gałąź tekstowa: NLTK preprocessing → TF-IDF (unigrams + bigrams).
+    # Gałąź tekstowa: NLTK preprocessing -> TF-IDF (unigrams + bigrams).
     # language=None wyłącza stemmer angielski, który zniekształcałby polskie tokeny.
     # strip_accents usunięto - polskie znaki diakrytyczne (ą, ę, ó…) są cechami
     # semantycznymi i nie powinny być sprowadzane do ich ASCII-odpowiedników.
@@ -291,7 +291,7 @@ def save(pipeline: Pipeline, path: Path = DEFAULT_MODEL_PATH) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(pipeline, path)
-    logger.info("Model zapisany → %s", path)
+    logger.info("Model zapisany -> %s", path)
 
 
 def load(path: Path = DEFAULT_MODEL_PATH) -> Pipeline | None:

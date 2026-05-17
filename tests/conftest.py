@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import os
 
-# ── Musi być PRZED każdym importem z agent.* ─────────────────────────────────
+# -- Musi być PRZED każdym importem z agent.* ---------------------------------
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("MAILHOG_POLLER_ENABLED", "false")
 os.environ.setdefault("MODEL_PATH", "models/nonexistent.joblib")
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 import pytest
 from sqlalchemy import create_engine
@@ -32,7 +32,7 @@ import agent.main as _main
 from agent.db import Base, Prediction
 from agent.ingestion.email_parser import ParsedEmail
 
-# ── Testowy engine SQLite (in-memory, współdzielony przez StaticPool) ─────────
+# -- Testowy engine SQLite (in-memory, współdzielony przez StaticPool) ---------
 _test_engine = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},
@@ -40,20 +40,20 @@ _test_engine = create_engine(
 )
 _TestSession = sessionmaker(bind=_test_engine, autoflush=False, autocommit=False)
 
-# ── Podmiana referencji we wszystkich modułach ────────────────────────────────
+# -- Podmiana referencji we wszystkich modułach --------------------------------
 _db.engine = _test_engine
 _db.SessionLocal = _TestSession
 _routes_predict.SessionLocal = _TestSession
 _routes_results.SessionLocal = _TestSession
 _main.engine = _test_engine
 
-# ── Tworzenie tabel (raz na sesję testową) ────────────────────────────────────
+# -- Tworzenie tabel (raz na sesję testową) ------------------------------------
 Base.metadata.create_all(bind=_test_engine)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Fixtures współdzielone
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
 def client():
@@ -85,9 +85,9 @@ def clean_predictions():
     yield
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Fabryki e-maili do wielokrotnego użytku
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 def make_phishing_eml(
     from_addr: str = "security@evil.xyz",

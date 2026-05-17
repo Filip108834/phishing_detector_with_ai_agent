@@ -16,12 +16,12 @@ Obsługiwane datasety:
 
 Struktura wyjściowa:
     data/datasets/
-    ├── spamassassin/
-    │   ├── easy_ham/   *.eml  (label: legit)
-    │   ├── hard_ham/   *.eml  (label: legit)
-    │   └── spam/       *.eml  (label: spam/phishing)
-    ├── enron/          (po ręcznym pobraniu)
-    └── manifest.json   (podsumowanie zbiorów)
+    |-- spamassassin/
+    │   |-- easy_ham/   *.eml  (label: legit)
+    │   |-- hard_ham/   *.eml  (label: legit)
+    │   |-- spam/       *.eml  (label: spam/phishing)
+    |-- enron/          (po ręcznym pobraniu)
+    |-- manifest.json   (podsumowanie zbiorów)
 """
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ Dostępny jest na Kaggle:
 
 5. Struktura po wypakowaniu:
        data/datasets/enron/
-       └── emails.csv   (~517 000 wiadomości)
+       |-- emails.csv   (~517 000 wiadomości)
 
 Alternatywnie: dataset jest dostępny bezpośrednio na CMU:
     https://www.cs.cmu.edu/~enron/
@@ -113,7 +113,7 @@ def fetch_spamassassin(force: bool = False) -> dict[str, int]:
             print(f"  [!]  Błąd pobierania {filename}: {e}")
             continue
 
-        print(f"  [->] Rozpakowywanie → {dest_dir}/")
+        print(f"  [->] Rozpakowywanie -> {dest_dir}/")
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         try:
@@ -179,7 +179,7 @@ def write_manifest(spamassassin_counts: dict[str, int]) -> None:
 
     path = OUTPUT_DIR / "manifest.json"
     path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n[+] Manifest zapisany → {path}")
+    print(f"\n[+] Manifest zapisany -> {path}")
 
 
 # ---------------------------------------------------------------------------

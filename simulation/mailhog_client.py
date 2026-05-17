@@ -128,7 +128,7 @@ def _parse_mailhog_item(item: dict) -> MailHogMessage:
     # Rekonstrukcja surowego MIME
     raw_parts: list[str] = []
 
-    # Nagłówki → string
+    # Nagłówki -> string
     for key, values in headers.items():
         for val in values:
             raw_parts.append(f"{key}: {val}")

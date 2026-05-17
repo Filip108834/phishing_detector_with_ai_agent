@@ -121,7 +121,7 @@ class MailHogPoller:
         parsed = ParsedEmail.from_string(msg.raw_mime)
         result = classify_parsed(parsed, campaign=self.campaign_tag)
         logger.debug(
-            "Poller: sklasyfikowano %s → %s (score=%.3f)",
+            "Poller: sklasyfikowano %s -> %s (score=%.3f)",
             msg.msg_id[:16], result["label"], result["score"],
         )
 
