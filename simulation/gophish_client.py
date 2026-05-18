@@ -8,22 +8,19 @@ Użycie:
     client = GophishClient(api_url="http://localhost:3333", api_key="...")
     profiles = client.list_sending_profiles()
 """
-import json
 from dataclasses import dataclass, field
 from typing import Any
 
 import requests
 from requests import Response
 
-# ---------------------------------------------------------------------------
-# Modele danych (proste dataclassy - wystarczające na potrzeby skryptów)
-# ---------------------------------------------------------------------------
+### Modele danych (proste dataclassy - wystarczające na potrzeby skryptów)
 
 @dataclass
 class SendingProfile:
     name: str
-    host: str          # np. "mailhog:1025"
-    from_address: str  # np. "phishing-test@lab.local"
+    host: str          ### np. "mailhog:1025"
+    from_address: str  ### np. "phishing-test@lab.local"
     username: str = ""
     password: str = ""
     ignore_cert_errors: bool = True
@@ -76,9 +73,7 @@ class Campaign:
     status: str = ""
 
 
-# ---------------------------------------------------------------------------
-# Klient
-# ---------------------------------------------------------------------------
+### Klient
 
 class GophishClient:
     """Wrapper nad Gophish REST API v1."""
@@ -92,9 +87,7 @@ class GophishClient:
         })
         self._session.verify = verify_ssl
 
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
+    ### Helpers
 
     def _get(self, path: str) -> Any:
         r = self._session.get(f"{self.base}{path}")
@@ -111,9 +104,7 @@ class GophishClient:
         r.raise_for_status()
         return r.json()
 
-    # ------------------------------------------------------------------
-    # Sending Profiles (SMTP)
-    # ------------------------------------------------------------------
+    ### Sending Profiles (SMTP)
 
     def list_sending_profiles(self) -> list[dict]:
         return self._get("/smtp/")
@@ -134,9 +125,7 @@ class GophishClient:
     def delete_sending_profile(self, profile_id: int) -> None:
         self._delete(f"/smtp/{profile_id}")
 
-    # ------------------------------------------------------------------
-    # Email Templates
-    # ------------------------------------------------------------------
+    ### Email Templates
 
     def list_templates(self) -> list[dict]:
         return self._get("/templates/")
@@ -154,9 +143,7 @@ class GophishClient:
     def delete_template(self, template_id: int) -> None:
         self._delete(f"/templates/{template_id}")
 
-    # ------------------------------------------------------------------
-    # Landing Pages
-    # ------------------------------------------------------------------
+    ### Landing Pages
 
     def list_pages(self) -> list[dict]:
         return self._get("/pages/")
@@ -175,9 +162,7 @@ class GophishClient:
     def delete_page(self, page_id: int) -> None:
         self._delete(f"/pages/{page_id}")
 
-    # ------------------------------------------------------------------
-    # User Groups
-    # ------------------------------------------------------------------
+    ### User Groups
 
     def list_groups(self) -> list[dict]:
         return self._get("/groups/")
@@ -201,9 +186,7 @@ class GophishClient:
     def delete_group(self, group_id: int) -> None:
         self._delete(f"/groups/{group_id}")
 
-    # ------------------------------------------------------------------
-    # Campaigns
-    # ------------------------------------------------------------------
+    ### Campaigns
 
     def list_campaigns(self) -> list[dict]:
         return self._get("/campaigns/")
@@ -226,9 +209,7 @@ class GophishClient:
     def delete_campaign(self, campaign_id: int) -> None:
         self._delete(f"/campaigns/{campaign_id}")
 
-    # ------------------------------------------------------------------
-    # Cleanup - usuwa wszystkie zasoby stworzone na potrzeby kampanii
-    # ------------------------------------------------------------------
+    ### Cleanup - usuwa wszystkie zasoby stworzone na potrzeby kampanii
 
     def teardown(
         self,
@@ -250,9 +231,7 @@ class GophishClient:
             self.delete_group(group_id)
 
 
-# ---------------------------------------------------------------------------
-# Helper
-# ---------------------------------------------------------------------------
+### Helper
 
 def _raise_gophish(r: Response) -> None:
     """Gophish zwraca HTTP 200 nawet przy błędach - sprawdzamy pole 'success'."""

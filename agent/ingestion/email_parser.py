@@ -19,48 +19,48 @@ from typing import Optional
 
 from bs4 import BeautifulSoup
 
-# Regex do wykrywania URL w plain-text
+### Regex do wykrywania URL w plain-text
 _URL_RE = re.compile(
     r"https?://[^\s\"'<>)\]]+",
     re.IGNORECASE,
 )
 
-# Nagłówki które ekstrakcja zachowuje (poza standardowymi)
+### Nagłówki które ekstrakcja zachowuje (poza standardowymi)
 _EXTRA_HEADERS = (
     "x-mailer",
     "x-originating-ip",
     "x-spam-status",
     "x-spam-score",
-    "authentication-results",   # zawiera wyniki DKIM/SPF/DMARC
-    "dkim-signature",           # obecność = własny podpis DKIM
+    "authentication-results",   ### zawiera wyniki DKIM/SPF/DMARC
+    "dkim-signature",           ### obecność = własny podpis DKIM
 )
 
 
 @dataclass
 class ParsedEmail:
-    # --- Identyfikatory ---
+    ### Identyfikatory
     message_id: str = ""
     date: str = ""
 
-    # --- Adresy ---
+    ### Adresy
     from_addr: str = ""
     reply_to: str = ""
     return_path: str = ""
     to_addr: str = ""
 
-    # --- Treść ---
+    ### Treść
     subject: str = ""
     plain_text: str = ""
-    html_text: str = ""   # tekst po wystrippowaniu HTML
+    html_text: str = ""   ### tekst po wystrippowaniu HTML
 
-    # --- Linki ---
+    ### Linki
     urls: list[str] = field(default_factory=list)
 
-    # --- Flagi ---
+    ### Flagi
     has_html: bool = False
     has_attachments: bool = False
 
-    # --- Metadane ---
+    ### Metadane
     raw_size: int = 0
     extra_headers: dict[str, str] = field(default_factory=dict)
     received_hops: int = 0       # liczba wpisów Received:
@@ -105,14 +105,12 @@ class ParsedEmail:
         return obj
 
 
-# ---------------------------------------------------------------------------
-# Prywatna logika parsowania
-# ---------------------------------------------------------------------------
+### Prywatna logika parsowania
 
 def _parse_message(msg: Message, raw_size: int) -> ParsedEmail:
     parsed = ParsedEmail(raw_size=raw_size)
 
-    # Nagłówki podstawowe
+    ### Nagłówki podstawowe
     parsed.message_id = _hdr(msg, "Message-ID")
     parsed.date = _hdr(msg, "Date")
     parsed.from_addr = _hdr(msg, "From")
@@ -121,19 +119,19 @@ def _parse_message(msg: Message, raw_size: int) -> ParsedEmail:
     parsed.to_addr = _hdr(msg, "To")
     parsed.subject = _hdr(msg, "Subject")
 
-    # Nagłówki dodatkowe
+    ### Nagłówki dodatkowe
     for key in _EXTRA_HEADERS:
         val = _hdr(msg, key)
         if val:
             parsed.extra_headers[key] = val
 
-    # Liczba przeskoków Received:
+    ### Liczba przeskoków Received:
     parsed.received_hops = len(msg.get_all("Received") or [])
 
-    # Wynik SPF z nagłówków Authentication-Results / Received-SPF
+    ### Wynik SPF z nagłówków Authentication-Results / Received-SPF
     parsed.spf_result = _extract_spf(msg)
 
-    # Ciało wiadomości
+    ### Ciało wiadomości
     plain_parts: list[str] = []
     html_parts: list[str] = []
 
@@ -157,7 +155,7 @@ def _parse_message(msg: Message, raw_size: int) -> ParsedEmail:
     parsed.plain_text = "\n".join(plain_parts).strip()
     parsed.html_text = "\n".join(html_parts).strip()
 
-    # URL-e z plain-text
+    ### URL-e z plain-text
     combined_text = parsed.plain_text + " " + parsed.html_text
     parsed.urls.extend(_extract_urls(combined_text))
     parsed.urls = list(dict.fromkeys(parsed.urls))   # deduplikacja

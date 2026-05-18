@@ -7,9 +7,7 @@ ponieważ nie importuje nic z pozostałych modułów agenta.
 """
 from typing import Any, Optional
 
-# ---------------------------------------------------------------------------
-# Stan modelu ML
-# ---------------------------------------------------------------------------
+### Stan modelu ML
 
 model: dict[str, Any] = {
     "pipeline": None,    # sklearn Pipeline lub None
@@ -22,8 +20,6 @@ def is_ml_active() -> bool:
     return model["pipeline"] is not None
 
 
-# ---------------------------------------------------------------------------
-# Referencja do MailHog pollera (ustawiana w lifespan)
-# ---------------------------------------------------------------------------
+### Referencja do MailHog pollera (ustawiana w lifespan)
 
 poller: Optional[Any] = None   # MailHogPoller instance

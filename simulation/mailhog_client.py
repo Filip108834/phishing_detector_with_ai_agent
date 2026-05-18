@@ -12,23 +12,19 @@ Użycie:
     client.export_to_eml_dir(msgs, "data/raw/campaign_01")
     client.delete_all()
 """
-import email
-import json
-import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
 import requests
 
 
 @dataclass
 class MailHogMessage:
-    msg_id: str          # Gophish/MailHog ID
+    msg_id: str          ### Gophish/MailHog ID
     from_addr: str
     to_addrs: list[str]
     subject: str
-    raw_mime: str        # pełna wiadomość MIME jako string
+    raw_mime: str        ### pełna wiadomość MIME jako string
 
 
 class MailHogClient:
@@ -37,9 +33,7 @@ class MailHogClient:
     def __init__(self, api_url: str = "http://localhost:8025") -> None:
         self.base = api_url.rstrip("/")
 
-    # ------------------------------------------------------------------
-    # Pobieranie wiadomości
-    # ------------------------------------------------------------------
+    ### Pobieranie wiadomości
 
     def fetch_all(self, limit: int = 500) -> list[MailHogMessage]:
         """Zwraca wszystkie wiadomości z inbox MailHog."""
@@ -71,9 +65,7 @@ class MailHogClient:
             result.append(_parse_mailhog_item(item))
         return result
 
-    # ------------------------------------------------------------------
-    # Eksport do plików .eml
-    # ------------------------------------------------------------------
+    ### Eksport do plików .eml
 
     def export_to_eml_dir(self, messages: list[MailHogMessage], output_dir: str | Path) -> list[Path]:
         """Zapisuje każdą wiadomość jako plik .eml, zwraca listę ścieżek."""
@@ -89,9 +81,7 @@ class MailHogClient:
 
         return paths
 
-    # ------------------------------------------------------------------
-    # Zarządzanie inbox
-    # ------------------------------------------------------------------
+    ### Zarządzanie inbox
 
     def delete_all(self) -> None:
         """Czyści całą skrzynkę MailHog."""
@@ -104,35 +94,33 @@ class MailHogClient:
         return int(r.json().get("total", 0))
 
 
-# ---------------------------------------------------------------------------
-# Parsowanie odpowiedzi MailHog
-# ---------------------------------------------------------------------------
+### Parsowanie odpowiedzi MailHog
 
 def _parse_mailhog_item(item: dict) -> MailHogMessage:
     """Konwertuje surowy JSON z MailHog API na MailHogMessage."""
     msg_id = item.get("ID", "")
 
-    # Nagłówki
+    ### Nagłówki
     headers: dict[str, list[str]] = item.get("Content", {}).get("Headers", {})
     from_addr = _first_header(headers, "From")
     subject = _first_header(headers, "Subject")
 
-    # Odbiorcy
+    ### Odbiorcy
     to_raw = headers.get("To", [])
     to_addrs: list[str] = []
     for entry in to_raw:
         to_addrs.extend([a.strip() for a in entry.split(",") if a.strip()])
 
-    # Rekonstrukcja surowego MIME
+    ### Rekonstrukcja surowego MIME
     raw_parts: list[str] = []
 
-    # Nagłówki -> string
+    ### Nagłówki -> string
     for key, values in headers.items():
         for val in values:
             raw_parts.append(f"{key}: {val}")
-    raw_parts.append("")  # pusta linia = koniec nagłówków
+    raw_parts.append("")  ### pusta linia = koniec nagłówków
 
-    # Ciało
+    ### Ciało
     body = item.get("Content", {}).get("Body", "")
     raw_parts.append(body)
 

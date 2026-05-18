@@ -20,12 +20,12 @@ from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
-# Katalogi domyślne (względem CWD projektu)
+### Katalogi domyślne (względem CWD projektu)
 SPAMASSASSIN_DIR = Path("data/datasets/spamassassin")
 CAMPAIGNS_DIR = Path("data/raw")
 ENRON_CSV = Path("data/datasets/enron/emails.csv")
 
-# Mapowanie podkatalogów SpamAssassin -> etykieta
+### Mapowanie podkatalogów SpamAssassin -> etykieta
 _SA_LABEL_MAP: dict[str, int] = {
     "easy_ham":   0,
     "easy_ham_2": 0,
@@ -35,9 +35,7 @@ _SA_LABEL_MAP: dict[str, int] = {
 }
 
 
-# ---------------------------------------------------------------------------
-# Publiczne funkcje ładowania
-# ---------------------------------------------------------------------------
+### Publiczne funkcje ładowania
 
 def load_spamassassin(base_dir: Path = SPAMASSASSIN_DIR, max_per_class: int | None = None) -> pd.DataFrame:
     """
@@ -194,9 +192,7 @@ def load_all(
     return df
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+### Helpers
 
 def _safe_read(path: Path) -> str:
     """Wczytuje plik z obsługą różnych kodowań."""

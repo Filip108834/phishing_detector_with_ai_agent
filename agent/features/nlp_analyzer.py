@@ -18,9 +18,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Lazy loading modelu spaCy
-# ---------------------------------------------------------------------------
+### Lazy loading modelu spaCy
 
 _nlp = None           # globalny singleton modelu
 _load_attempted = False   # czy już próbowaliśmy załadować (niezależnie od wyniku)
@@ -36,11 +34,11 @@ def _get_nlp():
         import spacy
         _nlp = spacy.load(
             "en_core_web_sm",
-            # Wyłączamy parser zależności - używamy lekkiego sentence segmentera
-            # Zostawiamy: tok2vec, tagger, senter, ner, attribute_ruler, lemmatizer
+            ### Wyłączamy parser zależności - używamy lekkiego sentence segmentera
+            ### Zostawiamy: tok2vec, tagger, senter, ner, attribute_ruler, lemmatizer
             exclude=["parser"],
         )
-        # Dodaj sentencizer jako alternatywę dla parsera
+        ### Dodaj sentencizer jako alternatywę dla parsera
         if "senter" not in _nlp.pipe_names:
             _nlp.add_pipe("sentencizer")
         logger.info("spaCy 'en_core_web_sm' załadowany. Pipes: %s", _nlp.pipe_names)
@@ -57,9 +55,7 @@ def _get_nlp():
     return _nlp
 
 
-# ---------------------------------------------------------------------------
-# Nazwy kolumn NLP (prefix feat_nlp_)
-# ---------------------------------------------------------------------------
+### Nazwy kolumn NLP (prefix feat_nlp_)
 
 NLP_FEATURE_COLS: list[str] = [
     "feat_nlp_ner_org_count",
@@ -114,24 +110,22 @@ def analyze_texts_batch(texts: list[str], max_chars: int = 8_000) -> list[dict[s
     return [_extract_from_doc(doc) for doc in nlp.pipe(truncated, batch_size=64)]
 
 
-# ---------------------------------------------------------------------------
-# Ekstrakcja cech z doc spaCy
-# ---------------------------------------------------------------------------
+### Ekstrakcja cech z doc spaCy
 
-# Typy POS uznawane za słowa funkcyjne (spójniki, przyimki, zaimki, partykuły)
+### Typy POS uznawane za słowa funkcyjne (spójniki, przyimki, zaimki, partykuły)
 _FUNCTION_POS = frozenset(["ADP", "AUX", "CCONJ", "DET", "PART", "PRON", "SCONJ"])
 
-# Czasowniki mogące być rozkazem (POS=VERB, dep=ROOT, lemma w słowniku).
-# Lista dwujęzyczna: en_core_web_sm lematyzuje angielskie lematy poprawnie;
-# polskie formy rozkazujące (bez fleksji) trafiają tu jako fallback gdy
-# sentencizer przekaże je jako ROOT - spaCy nie lematyzuje PL idealnie,
-# ale wykrywa podstawowe formy czasownikowe.
+"""Czasowniki mogące być rozkazem (POS=VERB, dep=ROOT, lemma w słowniku).
+Lista dwujęzyczna: en_core_web_sm lematyzuje angielskie lematy poprawnie;
+polskie formy rozkazujące (bez fleksji) trafiają tu jako fallback gdy
+sentencizer przekaże je jako ROOT - spaCy nie lematyzuje PL idealnie,
+ale wykrywa podstawowe formy czasownikowe."""
 _IMPERATIVE_LEMMAS = frozenset([
-    # --- Angielskie ---
+    ### Angielskie
     "click", "verify", "confirm", "update", "login", "sign", "enter",
     "provide", "send", "call", "contact", "access", "download", "open",
     "submit", "fill", "check", "visit", "review",
-    # --- Polskie ---
+    ### Polskie
     "kliknij", "zweryfikuj", "potwierdź", "zaktualizuj", "zaloguj",
     "podaj", "wyślij", "zadzwoń", "skontaktuj", "pobierz", "otwórz",
     "wypełnij", "sprawdź", "odwiedź", "przejdź", "wprowadź", "zapłać",
@@ -143,13 +137,13 @@ def _extract_from_doc(doc) -> dict[str, float]:
     tokens = [t for t in doc if not t.is_space]
     n_tokens = max(len(tokens), 1)
 
-    # --- NER ---
+    ### NER
     ner_org      = sum(1 for e in doc.ents if e.label_ == "ORG")
     ner_money    = sum(1 for e in doc.ents if e.label_ == "MONEY")
     ner_date     = sum(1 for e in doc.ents if e.label_ == "DATE")
     ner_cardinal = sum(1 for e in doc.ents if e.label_ == "CARDINAL")
 
-    # --- POS ---
+    ### POS
     pos_counts: dict[str, int] = {}
     for t in tokens:
         pos_counts[t.pos_] = pos_counts.get(t.pos_, 0) + 1
@@ -158,7 +152,7 @@ def _extract_from_doc(doc) -> dict[str, float]:
     noun_count  = pos_counts.get("NOUN", 0) + pos_counts.get("PROPN", 0)
     func_count  = sum(pos_counts.get(p, 0) for p in _FUNCTION_POS)
 
-    # Zlicz czasowniki rozkazujące (ROOT VERB z lematem w słowniku)
+    ### Zlicz czasowniki rozkazujące (ROOT VERB z lematem w słowniku)
     imperative_count = sum(
         1 for t in tokens
         if t.pos_ == "VERB"
@@ -166,7 +160,7 @@ def _extract_from_doc(doc) -> dict[str, float]:
         and t.lemma_.lower() in _IMPERATIVE_LEMMAS
     )
 
-    # --- Zdania ---
+    ### Zdania
     sentences = list(doc.sents)
     n_sents = max(len(sentences), 1)
 
@@ -176,7 +170,7 @@ def _extract_from_doc(doc) -> dict[str, float]:
     exclaim_sents = sum(1 for s in sentences if s.text.rstrip().endswith("!"))
     exclaim_ratio = exclaim_sents / n_sents
 
-    # --- Leksykalne ---
+    ### Leksykalne
     lemmas = [t.lemma_.lower() for t in tokens if t.is_alpha]
     unique_ratio = len(set(lemmas)) / max(len(lemmas), 1)
 

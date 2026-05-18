@@ -7,9 +7,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
-# ---------------------------------------------------------------------------
-# Predykcja
-# ---------------------------------------------------------------------------
+### Predykcja
 
 class PredictRequest(BaseModel):
     sender: Optional[str] = Field(default=None, description="Adres nadawcy (From)")
@@ -31,9 +29,7 @@ class PredictResponse(BaseModel):
     saved_id: int
 
 
-# ---------------------------------------------------------------------------
-# Wyniki / historia
-# ---------------------------------------------------------------------------
+### Wyniki / historia
 
 class ResultItem(BaseModel):
     id: int
@@ -64,9 +60,7 @@ class StatsResponse(BaseModel):
     campaigns: List[str]
 
 
-# ---------------------------------------------------------------------------
-# Ingestion
-# ---------------------------------------------------------------------------
+### Ingestion
 
 class IngestMailhogResponse(BaseModel):
     fetched: int
@@ -87,9 +81,7 @@ class IngestCampaignResponse(BaseModel):
     ground_truth_available: bool = False
 
 
-# ---------------------------------------------------------------------------
-# Informacja o modelu
-# ---------------------------------------------------------------------------
+### Informacja o modelu
 
 class ModelInfoResponse(BaseModel):
     model_type: str

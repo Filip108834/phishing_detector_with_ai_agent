@@ -24,17 +24,13 @@ Struktura wyjściowa:
     |-- manifest.json   (podsumowanie zbiorów)
 """
 import argparse
-import hashlib
 import json
-import os
 import tarfile
 import urllib.request
 from datetime import datetime
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Konfiguracja datasetów
-# ---------------------------------------------------------------------------
+### Konfiguracja datasetów
 
 OUTPUT_DIR = Path("data/datasets")
 
@@ -74,13 +70,10 @@ Dostępny jest na Kaggle:
 Alternatywnie: dataset jest dostępny bezpośrednio na CMU:
     https://www.cs.cmu.edu/~enron/
 
-=================================================
 """
 
 
-# ---------------------------------------------------------------------------
-# SpamAssassin
-# ---------------------------------------------------------------------------
+### SpamAssassin
 
 def fetch_spamassassin(force: bool = False) -> dict[str, int]:
     """Pobiera i rozpakowuje SpamAssassin Public Corpus."""
@@ -130,7 +123,7 @@ def fetch_spamassassin(force: bool = False) -> dict[str, int]:
         except Exception as e:
             print(f"  [!]  Błąd rozpakowywania {filename}: {e}")
 
-    # Posprzątaj tmp
+    ### Posprzątaj tmp
     try:
         tmp_dir.rmdir()
     except OSError:
@@ -139,9 +132,7 @@ def fetch_spamassassin(force: bool = False) -> dict[str, int]:
     return counts
 
 
-# ---------------------------------------------------------------------------
-# Manifest
-# ---------------------------------------------------------------------------
+### Manifest
 
 def write_manifest(spamassassin_counts: dict[str, int]) -> None:
     """Zapisuje podsumowanie zebranych zbiorów do manifest.json."""
@@ -180,9 +171,7 @@ def write_manifest(spamassassin_counts: dict[str, int]) -> None:
     print(f"\n[+] Manifest zapisany -> {path}")
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+### Helpers
 
 def _download(url: str, dest: Path, chunk_size: int = 65536) -> None:
     """Pobiera plik z podanego URL z paskiem postępu."""
@@ -209,7 +198,7 @@ def _count_enron() -> int:
         return 0
     csv_files = list(enron_path.glob("*.csv"))
     if csv_files:
-        # Zlicz wiersze w emails.csv (minus nagłówek)
+        ### Zlicz wiersze w emails.csv (minus nagłówek)
         try:
             with open(csv_files[0], encoding="utf-8", errors="replace") as f:
                 return sum(1 for _ in f) - 1
@@ -218,9 +207,7 @@ def _count_enron() -> int:
     return sum(1 for _ in enron_path.rglob("*") if _.is_file())
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
+### Entry point
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pobieranie publicznych datasetów e-mail")

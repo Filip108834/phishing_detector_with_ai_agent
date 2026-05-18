@@ -1,10 +1,10 @@
 ﻿"""
-Router: masowe pobieranie i klasyfikacja wiadomości.
+Router: pobieranie i klasyfikacja wiadomości.
 
 Endpointy:
-    POST /ingest/mailhog              - pobierz wszystkie e-maile z MailHog i sklasyfikuj
-    POST /ingest/campaign/{name}      - sklasyfikuj e-maile z lokalnej kampanii (data/raw/)
-    DELETE /ingest/mailhog/purge      - wyczyść skrzynkę MailHog
+    POST /ingest/mailhog              - pobiera wszystkie e-maile z MailHog i klasyfikuje
+    POST /ingest/campaign/{name}      - klasyfikuje e-maile z lokalnej kampanii (data/raw/)
+    DELETE /ingest/mailhog/purge      - czyści skrzynkę MailHog
 """
 import json
 import logging
@@ -24,9 +24,7 @@ router = APIRouter(prefix="/ingest", tags=["ingest"])
 RAW_DATA_DIR = Path("data/raw")
 
 
-# ---------------------------------------------------------------------------
-# MailHog ingestion
-# ---------------------------------------------------------------------------
+### MailHog ingestion
 
 def _mailhog_fetch_all(mailhog_url: str) -> list[dict]:
     """Pobiera wszystkie wiadomości z MailHog i zwraca listę dict {msg_id, raw_mime}."""
@@ -58,6 +56,7 @@ def _mailhog_fetch_all(mailhog_url: str) -> list[dict]:
 
 
 def _mailhog_delete_all(mailhog_url: str) -> None:
+    """Usuwa wszystkie wiadomości z MailHog"""
     import requests as _req
     _req.delete(f"{mailhog_url.rstrip('/')}/api/v1/messages", timeout=10).raise_for_status()
 
@@ -123,9 +122,7 @@ def purge_mailhog() -> dict:
     return {"status": "ok", "message": "Inbox MailHog wyczyszczony."}
 
 
-# ---------------------------------------------------------------------------
-# Campaign ingestion
-# ---------------------------------------------------------------------------
+### Campaign ingestion
 
 @router.post("/campaign/{campaign_name}", response_model=IngestCampaignResponse)
 def ingest_campaign(campaign_name: str) -> IngestCampaignResponse:
@@ -149,7 +146,7 @@ def ingest_campaign(campaign_name: str) -> IngestCampaignResponse:
             detail=f"Brak plików .eml w katalogu: {campaign_dir}",
         )
 
-    # Opcjonalne metadane (ground truth label)
+    ### Opcjonalne metadane (ground truth label)
     ground_truth_label: str | None = None
     meta_path = campaign_dir / "metadata.json"
     if meta_path.exists():

@@ -42,5 +42,5 @@ class Prediction(Base):
     label = Column(String(32), nullable=False)
     reasons = Column(Text, nullable=True)
     model_used = Column(String(32), nullable=False, default="heuristic")
-    # Opcjonalne pole kampanii (wypełniane przez /ingest/campaign)
+    ### Opcjonalne pole kampanii (wypełniane przez /ingest/campaign)
     campaign = Column(String(128), nullable=True)

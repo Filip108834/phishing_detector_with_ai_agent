@@ -10,21 +10,21 @@ from urllib.parse import urlparse, parse_qs
 
 import tldextract
 
-# TLD uznawane za podejrzane w kontekście phishingu
+### TLD uznawane za podejrzane w kontekście phishingu
 _SUSPICIOUS_TLDS = frozenset([
     "xyz", "tk", "ml", "ga", "cf", "gq",   # darmowe / nadużywane
     "click", "link", "top", "zip", "lol",   # nowe TLD często używane w phishingu
     "work", "loan", "online", "site", "gdn",
 ])
 
-# Słowa kluczowe phishingu w URL-u
+### Słowa kluczowe phishingu w URL-u
 _PHISH_URL_KEYWORDS = frozenset([
     "login", "signin", "verify", "secure", "account", "update",
     "confirm", "banking", "paypal", "apple", "microsoft", "amazon",
     "password", "credential", "webscr", "cmd=_",
 ])
 
-# Regex: adres IP w URL
+### Regex: adres IP w URL
 _IP_RE = re.compile(r"https?://(\d{1,3}\.){3}\d{1,3}(:\d+)?(/|$)")
 
 # Parametry przekierowania w URL
@@ -76,16 +76,16 @@ def _analyze_single(url: str) -> dict:
     hostname = parsed.hostname or ""
     url_lower = url.lower()
 
-    # Ekstrakcja TLD
+    ### Ekstrakcja TLD
     ext = tldextract.extract(url)
     tld = ext.suffix.lower() if ext.suffix else ""
     domain = ext.domain.lower() if ext.domain else ""
 
-    # Głębokość subdomen (np. a.b.c.malicious.com -> 2 subdomeny)
+    ### Głębokość subdomen (np. a.b.c.malicious.com -> 2 subdomeny)
     subdomain = ext.subdomain.lower() if ext.subdomain else ""
     subdomain_depth = len(subdomain.split(".")) if subdomain else 0
 
-    # Parametry query
+    ### Parametry query
     query_params = set(parse_qs(parsed.query).keys())
 
     return {

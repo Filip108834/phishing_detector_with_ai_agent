@@ -2,7 +2,7 @@
 Router: historia predykcji i statystyki.
 
 Endpointy:
-    GET /results              - paginowana lista predykcji
+    GET /results              - ponumerowana lista predykcji
     GET /results/stats        - agregowane statystyki
     GET /results/{id}         - szczegóły pojedynczej predykcji
     GET /results/campaign/{n} - predykcje dla danej kampanii

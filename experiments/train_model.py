@@ -27,7 +27,7 @@ from pathlib import Path
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# Upewnij się że projekt jest w sys.path przy uruchomieniu jako skrypt
+### Upewnij się że projekt jest w sys.path przy uruchomieniu jako skrypt
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agent.features.extractor import extract
@@ -46,9 +46,7 @@ RESULTS_DIR = Path("experiments/results")
 MODEL_PATH = Path("models/classifier.joblib")
 
 
-# ---------------------------------------------------------------------------
-# Pipeline danych: raw_eml -> DataFrame cech
-# ---------------------------------------------------------------------------
+### Pipeline danych: raw_eml -> DataFrame cech
 
 def build_feature_matrix(df_raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     """
@@ -74,18 +72,18 @@ def build_feature_matrix(df_raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]
         except Exception as e:
             logger.debug("Błąd parsowania: %s", e)
             errors += 1
-            # Fallback: puste cechy
+            ### Fallback: puste cechy
             rows.append({"text": str(row["raw_eml"])[:500]})
 
     if errors:
         logger.warning("Nie udało się sparsować %d/%d wiadomości.", errors, len(df_raw))
 
     X = pd.DataFrame(rows)
-    # pd.concat różnych źródeł może zmieniać dtype kolumny label na object/float.
-    # Wymuszone rzutowanie na int zapobiega błędowi sklearn "Unknown label type: unknown".
+    ### pd.concat różnych źródeł może zmieniać dtype kolumny label na object/float.
+    ### Wymuszone rzutowanie na int zapobiega błędowi sklearn "Unknown label type: unknown".
     y = df_raw["label"].reset_index(drop=True).astype(int)
 
-    # Wypełnij brakujące wartości numeryczne zerem (dla wiadomości które się nie sparsowały)
+    ### Wypełnij brakujące wartości numeryczne zerem (dla wiadomości które się nie sparsowały)
     num_cols = [c for c in X.columns if c.startswith("feat_")]
     X[num_cols] = X[num_cols].fillna(0.0)
     X["text"] = X["text"].fillna("").astype(str)
@@ -97,9 +95,7 @@ def build_feature_matrix(df_raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]
     return X, y
 
 
-# ---------------------------------------------------------------------------
-# Trenowanie jednego modelu
-# ---------------------------------------------------------------------------
+### Trenowanie jednego modelu
 
 def run_training(
     model_name: str = "ensemble",
@@ -110,7 +106,7 @@ def run_training(
 ) -> dict:
     """Pełny cykl: ładowanie danych -> cechy -> train/test split -> trening -> ewaluacja."""
 
-    # 1. Dane
+    ### 1. Dane
     df_raw = load_all(
         include_enron=include_enron,
         max_per_class=max_per_class,
@@ -119,37 +115,37 @@ def run_training(
         logger.error("Brak danych! Uruchom najpierw: python scripts/fetch_datasets.py")
         sys.exit(1)
 
-    # 2. Cechy
+    ### 2. Cechy
     X, y = build_feature_matrix(df_raw)
 
-    # 3. Podział train/test (stratified)
+    ### 3. Podział train/test (stratified)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, stratify=y, random_state=42
     )
     logger.info("Train: %d  |  Test: %d", len(X_train), len(X_test))
 
-    # 4. Buduj i trenuj pipeline
+    ### 4. Buduj i trenuj pipeline
     pipe = ml.build_pipeline(model_name)
     ml.train(pipe, X_train, y_train)
 
-    # 5. Opcjonalna walidacja krzyżowa (na całym zbiorze, bez testu)
+    ### 5. Opcjonalna walidacja krzyżowa (na całym zbiorze, bez testu)
     cv_metrics: dict = {}
     if cv:
-        # Użyj podzbioru dla CV (max 5000 próbek) żeby nie trwało wiecznie
+        ### Użyj podzbioru dla CV (max 5000 próbek) żeby nie trwało wiecznie
         n_cv = min(len(X), 5_000)
         cv_metrics = ml.cross_validate_pipeline(pipe, X.iloc[:n_cv], y.iloc[:n_cv])
 
-    # 6. Ewaluacja na test set
+    ### 6. Ewaluacja na test set
     test_metrics = ml.evaluate(pipe, X_test, y_test)
 
-    # 7. Wydruk raportu
+    ### 7. Wydruk raportu
     _print_report(model_name, test_metrics, cv_metrics)
 
-    # 8. Zapis modelu
+    ### 8. Zapis modelu
     if save_model:
         ml.save(pipe, MODEL_PATH)
 
-    # 9. Zapis wyników do pliku JSON
+    ### 9. Zapis wyników do pliku JSON
     result = {
         "model": model_name,
         "trained_at": datetime.utcnow().isoformat(),
@@ -165,9 +161,7 @@ def run_training(
     return result
 
 
-# ---------------------------------------------------------------------------
-# Porównanie modeli
-# ---------------------------------------------------------------------------
+### Porównanie modeli
 
 def run_comparison(max_per_class: int | None = 1_000) -> None:
     """Trenuje i porównuje wszystkie warianty klasyfikatora."""
@@ -208,9 +202,7 @@ def run_comparison(max_per_class: int | None = 1_000) -> None:
     print(f"\nNajlepszy model (F1): {best}")
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+### Helpers
 
 def _print_report(model_name: str, test_metrics: dict, cv_metrics: dict) -> None:
     print("\n" + "=" * 60)
@@ -236,9 +228,7 @@ def _save_results(result: dict, model_name: str) -> None:
     logger.info("Wyniki zapisane -> %s", path)
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
+### Entry point
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Trenowanie klasyfikatora phishingu")

@@ -30,9 +30,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Polskie stopwords (NLTK nie ma ich wbudowanych)
-# ---------------------------------------------------------------------------
+### Polskie stopwords (NLTK nie ma ich wbudowanych)
 
 _POLISH_STOPWORDS = frozenset([
     "i", "w", "z", "na", "do", "się", "nie", "to", "że", "a", "jak",
@@ -43,9 +41,7 @@ _POLISH_STOPWORDS = frozenset([
     "który", "która", "które", "lecz", "lub",
 ])
 
-# ---------------------------------------------------------------------------
-# Lazy loading zasobów NLTK
-# ---------------------------------------------------------------------------
+### Lazy loading zasobów NLTK
 
 _nltk_ready = False
 
@@ -74,9 +70,7 @@ def _ensure_nltk() -> bool:
         return False
 
 
-# ---------------------------------------------------------------------------
-# Transformer
-# ---------------------------------------------------------------------------
+### Transformer
 
 class NLTKTextPreprocessor(BaseEstimator, TransformerMixin):
     """
@@ -109,7 +103,7 @@ class NLTKTextPreprocessor(BaseEstimator, TransformerMixin):
         from nltk.corpus import stopwords
         from nltk.stem import SnowballStemmer
 
-        # Wczytaj stopwords (angielskie + polskie)
+        ### Wczytaj stopwords (angielskie + polskie)
         try:
             en_stops = set(stopwords.words("english"))
         except Exception:
@@ -117,7 +111,7 @@ class NLTKTextPreprocessor(BaseEstimator, TransformerMixin):
 
         all_stops = en_stops | _POLISH_STOPWORDS
 
-        # Stemmer - pomijany gdy language=None (tryb wielojęzyczny)
+        ### Stemmer - pomijany gdy language=None (tryb wielojęzyczny)
         stemmer = None
         if self.language is not None:
             try:
@@ -125,20 +119,20 @@ class NLTKTextPreprocessor(BaseEstimator, TransformerMixin):
             except Exception:
                 pass
 
-        # Normalizacja
+        ### Normalizacja
         text = text.lower()
         text = re.sub(r"https?://\S+", " urltoken ", text)   # zamień URL na token
         text = re.sub(r"\S+@\S+", " emailtoken ", text)      # zamień e-mail na token
         text = re.sub(r"\d+", " numtoken ", text)             # zamień liczby na token
         text = text.translate(str.maketrans("", "", string.punctuation))
 
-        # Tokenizacja
+        ### Tokenizacja
         try:
             tokens = nltk.word_tokenize(text)
         except Exception:
             tokens = text.split()
 
-        # Filtrowanie i stemming
+        ### Filtrowanie i stemming
         result_tokens: list[str] = []
         for tok in tokens:
             if len(tok) < self.min_token_len:

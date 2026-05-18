@@ -12,7 +12,6 @@ Zależności:
 """
 import asyncio
 import logging
-import os
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -42,9 +41,7 @@ class MailHogPoller:
         self._running = False
         self._task: Optional[asyncio.Task] = None
 
-    # ------------------------------------------------------------------
-    # Lifecycle
-    # ------------------------------------------------------------------
+    ### Lifecycle
 
     def start(self) -> None:
         """Uruchamia background task. Wywoływać z lifespan FastAPI."""
@@ -65,9 +62,7 @@ class MailHogPoller:
             self._task.cancel()
         logger.info("MailHog poller zatrzymany.")
 
-    # ------------------------------------------------------------------
-    # Główna pętla
-    # ------------------------------------------------------------------
+    ### Główna pętla
 
     async def _loop(self) -> None:
         while self._running:
@@ -83,7 +78,7 @@ class MailHogPoller:
         """Jednorazowe sprawdzenie MailHog i klasyfikacja nowych wiadomości."""
         loop = asyncio.get_running_loop()
 
-        # Wywołanie synchronicznego klienta przez executor (nie blokuje event loop)
+        ### Wywołanie synchronicznego klienta przez executor (nie blokuje event loop)
         messages = await loop.run_in_executor(None, self._fetch_messages)
         if not messages:
             return
@@ -101,9 +96,7 @@ class MailHogPoller:
             except Exception as e:
                 logger.warning("Błąd klasyfikacji %s: %s", msg.msg_id, e)
 
-    # ------------------------------------------------------------------
-    # Synchroniczne helpery (wykonywane w thread executor)
-    # ------------------------------------------------------------------
+    ### Synchroniczne helpery (wykonywane w thread executor)
 
     def _fetch_messages(self):
         """Pobiera wiadomości z MailHog (sync) bez zależności od simulation."""
@@ -151,9 +144,7 @@ class MailHogPoller:
             msg.msg_id[:16], result["label"], result["score"],
         )
 
-    # ------------------------------------------------------------------
-    # Diagnostyka
-    # ------------------------------------------------------------------
+    ### Diagnostyka
 
     def status(self) -> dict:
         return {

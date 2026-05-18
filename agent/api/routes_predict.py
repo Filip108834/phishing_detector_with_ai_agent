@@ -2,8 +2,8 @@
 Router: klasyfikacja wiadomości e-mail.
 
 Endpointy:
-    POST /predict      - klasyfikacja z JSON (sender, subject, body, urls, headers)
-    POST /predict/raw  - klasyfikacja z surowego MIME (.eml string)
+    POST /predict      - klasyfikuje z JSON (sender, subject, body, urls, headers)
+    POST /predict/raw  - klasyfikuje z surowego MIME (.eml string)
     GET  /model/info   - informacje o aktywnym modelu
 """
 import os
@@ -26,9 +26,7 @@ from agent.ml import pipeline as ml
 
 router = APIRouter(tags=["predict"])
 
-# ---------------------------------------------------------------------------
-# Endpointy
-# ---------------------------------------------------------------------------
+### Endpointy
 
 @router.get("/model/info", response_model=ModelInfoResponse)
 def model_info() -> ModelInfoResponse:
@@ -69,9 +67,7 @@ def predict_raw(payload: PredictRawRequest) -> PredictResponse:
     return _classify_and_save(parsed)
 
 
-# ---------------------------------------------------------------------------
-# Wewnętrzna logika (reużywana przez poller i ingest)
-# ---------------------------------------------------------------------------
+### Wewnętrzna logika (reużywana przez poller i ingest)
 
 def classify_parsed(parsed: ParsedEmail, campaign: Optional[str] = None) -> dict:
     """
@@ -138,9 +134,7 @@ def _save_to_db(
         db.close()
 
 
-# ---------------------------------------------------------------------------
-# Heurystyczny baseline (fallback)
-# ---------------------------------------------------------------------------
+### Heurystyczny baseline (fallback)
 
 _PHISH_KEYWORDS = [
     "pilne", "natychmiast", "zablokowane", "weryfikacja", "potwierdź",

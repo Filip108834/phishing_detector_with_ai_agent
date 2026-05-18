@@ -41,9 +41,7 @@ from simulation.mailhog_client import MailHogClient
 
 load_dotenv()
 
-# ---------------------------------------------------------------------------
-# Konfiguracja ze zmiennych środowiskowych
-# ---------------------------------------------------------------------------
+### Konfiguracja ze zmiennych środowiskowych
 
 GOPHISH_API_URL = os.getenv("GOPHISH_API_URL", "http://localhost:3333")
 GOPHISH_API_KEY = os.getenv("GOPHISH_API_KEY", "")
@@ -51,9 +49,7 @@ MAILHOG_API_URL = os.getenv("MAILHOG_API_URL", "http://localhost:8025")
 
 OUTPUT_BASE = Path("data/raw")
 
-# ---------------------------------------------------------------------------
-# Szablony e-mail
-# ---------------------------------------------------------------------------
+### Szablony e-mail
 
 PHISHING_TEMPLATES: list[dict] = [
     {
@@ -278,9 +274,7 @@ TEST_TARGETS: list[TargetUser] = [
 ]
 
 
-# ---------------------------------------------------------------------------
-# Główna funkcja
-# ---------------------------------------------------------------------------
+### Główna funkcja
 
 def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert") -> None:
     """
@@ -298,11 +292,11 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     gophish = GophishClient(GOPHISH_API_URL, GOPHISH_API_KEY)
     mailhog = MailHogClient(MAILHOG_API_URL)
 
-    # Sprawdzenie połączeń
+    ### Sprawdzenie połączeń
     _check_gophish(gophish)
     _check_mailhog(mailhog)
 
-    # Wyszukanie szablonu
+    ### Wyszukanie szablonu
     tpl_data = next((t for t in PHISHING_TEMPLATES if t["name"] == template_key), None)
     if tpl_data is None:
         print(f"[BŁĄD] Szablon '{template_key}' nie istnieje.")
@@ -310,7 +304,7 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
 
     print(f"\n[*] Tworzenie kampanii: {campaign_name}")
 
-    # 1. Profil wysyłkowy ->MailHog
+    ### 1. Profil wysyłkowy ->MailHog
     smtp_id = gophish.create_sending_profile(SendingProfile(
         name=f"{campaign_name}_smtp",
         host="mailhog:1025",
@@ -318,7 +312,7 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     ))
     print(f"    [+] Profil SMTP ID={smtp_id}")
 
-    # 2. Szablon phishingowy - unikalna nazwa per kampania, aby uniknąć kolizji
+    ### 2. Szablon phishingowy - unikalna nazwa per kampania, aby uniknąć kolizji
     tpl_name = f"{campaign_name}_{tpl_data['name']}"
     tpl_id = gophish.create_template(EmailTemplate(
         name=tpl_name,
@@ -328,7 +322,7 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     ))
     print(f"    [+] Szablon e-mail ID={tpl_id}")
 
-    # 3. Landing page
+    ### 3. Landing page
     page_id = gophish.create_page(LandingPage(
         name=f"{campaign_name}_page",
         html=LANDING_PAGE_HTML,
@@ -337,14 +331,14 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     ))
     print(f"    [+] Landing page ID={page_id}")
 
-    # 4. Grupa odbiorców
+    ### 4. Grupa odbiorców
     group_id = gophish.create_group(UserGroup(
         name=f"{campaign_name}_targets",
         targets=TEST_TARGETS,
     ))
     print(f"    [+] Grupa odbiorców ID={group_id} ({len(TEST_TARGETS)} osób)")
 
-    # 5. Kampania
+    ### 5. Kampania
     campaign_id = gophish.create_campaign(Campaign(
         name=campaign_name,
         template_name=tpl_name,
@@ -355,17 +349,17 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     ))
     print(f"    [+] Kampania uruchomiona ID={campaign_id}")
 
-    # 6. Czekaj na wysyłkę
+    ### 6. Czekaj na wysyłkę
     print("\n[*] Czekam na dostarczenie e-maili do MailHog (max 30s)...")
     _wait_for_delivery(mailhog, expected=len(TEST_TARGETS), timeout=30)
 
-    # 7. Eksport z MailHog
+    ### 7. Eksport z MailHog
     output_dir = OUTPUT_BASE / campaign_name
     messages = mailhog.fetch_all()
     paths = mailhog.export_to_eml_dir(messages, output_dir)
     print(f"[+] Wyeksportowano {len(paths)} wiadomości ->{output_dir}/")
 
-    # 8. Metadane kampanii
+    ### 8. Metadane kampanii
     metadata = {
         "campaign_name": campaign_name,
         "template": template_key,
@@ -380,7 +374,7 @@ def run_campaign(campaign_name: str, template_key: str = "lab_phish_bank_alert")
     )
     print(f"[+] Zapisano metadata.json")
 
-    # 9. Podsumowanie wyników z Gophish
+    ### 9. Podsumowanie wyników z Gophish
     results = gophish.get_campaign_results(campaign_id)
     sent = sum(1 for r in results.get("results", []) if r.get("status") != "Error")
     print(f"\n[=] Podsumowanie kampanii '{campaign_name}':")
@@ -418,7 +412,7 @@ def generate_legit_emails() -> None:
             except Exception as e:
                 print(f"    [!] Błąd wysyłki do {target.email}: {e}")
 
-    # Eksportuj z MailHog
+    ### Eksportuj z MailHog
     mailhog = MailHogClient(MAILHOG_API_URL)
     _wait_for_delivery(mailhog, expected=len(LEGIT_TEMPLATES) * len(TEST_TARGETS), timeout=15)
 
@@ -437,9 +431,7 @@ def generate_legit_emails() -> None:
     print(f"[+] Wyeksportowano {len(paths)} legit e-maili ->{output_dir}/")
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+### Helpers
 
 def _check_gophish(client: GophishClient) -> None:
     try:
@@ -461,10 +453,10 @@ def _check_mailhog(client: MailHogClient) -> None:
 
 
 def _wait_for_delivery(client: MailHogClient, expected: int, timeout: int = 30) -> None:
-    # Zapamiętaj stan skrzynki PRZED wysyłką, żeby liczyć tylko nowe wiadomości.
-    # Poprzednia wersja porównywała client.count() z `expected`, co powodowało
-    # natychmiastowe wyjście jeśli w skrzynce pozostały wiadomości z poprzedniej
-    # kampanii (wyścig czasowy / false-positive).
+    """Zapamiętaj stan skrzynki PRZED wysyłką, żeby liczyć tylko nowe wiadomości.
+    Poprzednia wersja porównywała client.count() z `expected`, co powodowało
+    natychmiastowe wyjście jeśli w skrzynce pozostały wiadomości z poprzedniej
+    kampanii (wyścig czasowy / false-positive)."""
     count_before = client.count()
     deadline = time.time() + timeout
     while time.time() < deadline:
@@ -477,9 +469,7 @@ def _wait_for_delivery(client: MailHogClient, expected: int, timeout: int = 30) 
     print(f"    [!] Timeout - odebrano {delivered}/{expected} nowych wiadomości.")
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
+### Entry point
 
 if __name__ == "__main__":
     import argparse

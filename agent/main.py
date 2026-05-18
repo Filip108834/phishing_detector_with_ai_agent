@@ -31,16 +31,14 @@ from agent.ml import pipeline as ml
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Lifecycle
-# ---------------------------------------------------------------------------
+### Lifecycle
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Utwórz tabele (idempotentne)
+    ### 1. Utwórz tabele (idempotentne)
     Base.metadata.create_all(bind=engine)
 
-    # 2. Wczytaj model ML
+    ### 2. Wczytaj model ML
     model_path = Path(os.getenv("MODEL_PATH", "models/classifier.joblib"))
     loaded = ml.load(model_path)
     if loaded is not None:
@@ -55,7 +53,7 @@ async def lifespan(app: FastAPI):
             model_path,
         )
 
-    # 3. Uruchom MailHog poller (jeśli skonfigurowany)
+    ### 3. Uruchom MailHog poller (jeśli skonfigurowany)
     poller_enabled = os.getenv("MAILHOG_POLLER_ENABLED", "true").lower() == "true"
     if poller_enabled:
         mailhog_url = os.getenv("MAILHOG_API_URL", "http://localhost:8025")
@@ -65,14 +63,12 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Cleanup
+    ### Cleanup
     if state.poller:
         state.poller.stop()
 
 
-# ---------------------------------------------------------------------------
-# Aplikacja
-# ---------------------------------------------------------------------------
+### Aplikacja
 
 app = FastAPI(
     title="AI Agent - Detekcja phishingu",
@@ -89,9 +85,7 @@ app.include_router(results_router)
 app.include_router(ingest_router)
 
 
-# ---------------------------------------------------------------------------
-# Health check
-# ---------------------------------------------------------------------------
+### Health check
 
 @app.get("/health", tags=["system"])
 def health() -> Dict[str, str]:
