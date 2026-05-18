@@ -152,7 +152,7 @@ phishing_detector_with_ai_agent/
 |-- reports/
 │   |-- kampania_01_raport.txt  # Faza 5: model heurystyczny
 │   |-- kampania_02_raport.txt  # Faza 6: model ML, wyniki porównawcze
-│   |-- kampania_03_raport.txt  # Faza 7: po naprawie błędów B1–B4, NLTK aktywny
+│   |-- kampania_03_raport.txt  # Faza 7: po naprawie błędów B1-B4, NLTK aktywny
 │
 |-- tests/
 │   |-- unit/                   # Testy jednostkowe (parser, extractor, URL)
